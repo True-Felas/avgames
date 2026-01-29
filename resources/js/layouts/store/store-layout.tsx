@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
 
 interface StoreLayoutProps {
     children: ReactNode;
@@ -10,6 +10,7 @@ interface PageProps extends Record<string, unknown> {
         user: {
             name: string;
             email: string;
+            is_admin?: boolean;
         } | null;
     };
     cart: {
@@ -21,6 +22,7 @@ interface PageProps extends Record<string, unknown> {
 export default function StoreLayout({ children }: StoreLayoutProps) {
     const { auth, cart } = usePage<PageProps>().props;
     const currentPath = window.location.pathname;
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
 
     const navLinks = [
         { name: 'HOME', href: '/', icon: 'home' },
@@ -116,9 +118,69 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
 
                         {/* Auth buttons */}
                         {auth?.user ? (
-                            <div className="flex items-center gap-2 text-[#7f13ec]">
-                                <span className="material-symbols-outlined">account_circle</span>
-                                <span className="font-pixel text-[10px]">{auth.user.name.toUpperCase()}</span>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                                    className="flex items-center gap-2 text-[#7f13ec] hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
+                                >
+                                    <span className="material-symbols-outlined">account_circle</span>
+                                    <span className="font-pixel text-[10px]">{auth.user.name.toUpperCase()}</span>
+                                    <span className={`material-symbols-outlined text-sm transition-transform ${userMenuOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                {userMenuOpen && (
+                                    <>
+                                        <div 
+                                            className="fixed inset-0 z-40" 
+                                            onClick={() => setUserMenuOpen(false)}
+                                        />
+                                        
+                                        <div className="absolute right-0 mt-2 w-56 z-50">
+                                            <div className="bg-[#0d0715] border border-[#7f13ec]/30 rounded-lg shadow-2xl overflow-hidden backdrop-blur-xl">
+                                                {/* User Info */}
+                                                <div className="p-4 border-b border-white/5">
+                                                    <p className="font-pixel text-[8px] text-[#7f13ec] mb-1">LOGGED AS</p>
+                                                    <p className="text-sm text-white font-medium">{auth.user.name}</p>
+                                                    <p className="text-xs text-gray-400 mt-0.5">{auth.user.email}</p>
+                                                </div>
+
+                                                {/* Menu Items */}
+                                                <div className="p-2">
+                                                    <Link
+                                                        href="/profile"
+                                                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-white transition-colors"
+                                                        onClick={() => setUserMenuOpen(false)}
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">person</span>
+                                                        <span className="text-sm">Profile</span>
+                                                    </Link>
+                                                    {auth.user.is_admin && (
+                                                        <Link
+                                                            href="/admin"
+                                                            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-300 hover:text-white transition-colors"
+                                                            onClick={() => setUserMenuOpen(false)}
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                                                            <span className="text-sm">Admin Panel</span>
+                                                        </Link>
+                                                    )}
+                                                </div>
+
+                                                {/* Logout */}
+                                                <div className="p-2 border-t border-white/5">
+                                                    <button
+                                                        onClick={() => router.post('/logout')}
+                                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#ff2a6d]/10 text-gray-300 hover:text-[#ff2a6d] transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">logout</span>
+                                                        <span className="text-sm font-medium">Logout</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         ) : (
                             <Link

@@ -35,7 +35,13 @@ class ProfileController extends Controller
         ];
 
         return Inertia::render('store/profile', [
-            'user' => $user,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'created_at' => $user->created_at,
+                'is_admin' => $user->is_admin,
+            ],
             'recentOrders' => $recentOrders,
             'stats' => $stats,
         ]);

@@ -1,0 +1,124 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class DashboardController extends Controller
+{
+    /**
+     * Display the admin dashboard with statistics.
+     */
+    public function index(): Response
+    {
+        // General stats
+        $stats = [
+            'total_users' => User::count(),
+            'total_products' => Product::count(),
+            'total_orders' => Order::count(),
+            'total_downloads' => DB::table('user_downloads')->count(),
+            'active_users' => User::where('status', 'active')->count(),
+            'banned_users' => User::where('status', 'banned')->count(),
+            'suspended_users' => User::where('status', 'suspended')->count(),
+        ];
+
+        // Downloads per day (last 30 days)
+        $downloadsPerDay = DB::table('user_downloads')
+            ->select(DB::raw('DATE(downloaded_at) as date'), DB::raw('COUNT(*) as count'))
+            ->where('downloaded_at', '>=', Carbon::now()->subDays(30))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(fn($item) => [
+                'date' => Carbon::parse($item->date)->format('M d'),
+                'downloads' => $item->count,
+            ]);
+
+        // New users per day (last 30 days)
+        $newUsersPerDay = User::select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+            ->where('created_at', '>=', Carbon::now()->subDays(30))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->map(fn($item) => [
+                'date' => Carbon::parse($item->date)->format('M d'),
+                'users' => $item->count,
+            ]);
+
+        // Top downloaded products
+        $topProducts = Product::select('products.*')
+            ->withCount('orderItems as download_count')
+            ->orderByDesc('downloads')
+            ->limit(10)
+            ->get()
+            ->map(fn($product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'image_url' => $product->image_url,
+                'downloads' => $product->downloads,
+                'category' => $product->category?->name,
+            ]);
+
+        // Top users by downloads
+        $topUsers = User::select('users.*')
+            ->leftJoin('user_downloads', 'users.id', '=', 'user_downloads.user_id')
+            ->selectRaw('COUNT(user_downloads.id) as downloads_count')
+            ->groupBy('users.id')
+            ->orderByDesc('downloads_count')
+            ->limit(10)
+            ->get()
+            ->map(fn($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'level' => $user->level,
+                'downloads_count' => $user->downloads_count,
+                'status' => $user->status,
+            ]);
+
+        // Downloads by category
+        $downloadsByCategory = Category::select('categories.name')
+            ->leftJoin('products', 'categories.id', '=', 'products.category_id')
+            ->selectRaw('SUM(products.downloads) as total_downloads')
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('total_downloads')
+            ->get()
+            ->map(fn($cat) => [
+                'name' => $cat->name,
+                'downloads' => (int) $cat->total_downloads,
+            ]);
+
+        // Recent activity
+        $recentDownloads = DB::table('user_downloads')
+            ->join('users', 'user_downloads.user_id', '=', 'users.id')
+            ->join('products', 'user_downloads.product_id', '=', 'products.id')
+            ->select('users.name as user_name', 'products.name as product_name', 'user_downloads.downloaded_at')
+            ->orderByDesc('user_downloads.downloaded_at')
+            ->limit(10)
+            ->get()
+            ->map(fn($item) => [
+                'user_name' => $item->user_name,
+                'product_name' => $item->product_name,
+                'downloaded_at' => Carbon::parse($item->downloaded_at)->diffForHumans(),
+            ]);
+
+        return Inertia::render('admin/dashboard', [
+            'stats' => $stats,
+            'downloadsPerDay' => $downloadsPerDay,
+            'newUsersPerDay' => $newUsersPerDay,
+            'topProducts' => $topProducts,
+            'topUsers' => $topUsers,
+            'downloadsByCategory' => $downloadsByCategory,
+            'recentDownloads' => $recentDownloads,
+        ]);
+    }
+}

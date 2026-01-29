@@ -17,6 +17,10 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@retrostore.com',
+            'is_admin' => true,
+            'level' => 99,
+            'experience' => 9999,
+            'status' => 'active',
         ]);
 
         // Create test user
@@ -32,6 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             ProductSeeder::class,
+            UserDownloadsSeeder::class,
         ]);
     }
 }

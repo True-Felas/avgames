@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import StoreLayout from '@/layouts/store/store-layout';
 
 interface Order {
@@ -14,6 +14,7 @@ interface User {
     name: string;
     email: string;
     created_at: string;
+    is_admin?: boolean;
 }
 
 interface Stats {
@@ -61,13 +62,22 @@ export default function Profile({ user, recentOrders, stats }: ProfileProps) {
                     <div className="w-20 h-20 rounded-full bg-[#7f13ec]/20 border-2 border-[#7f13ec] flex items-center justify-center">
                         <span className="material-symbols-outlined text-4xl text-[#7f13ec]">person</span>
                     </div>
-                    <div>
+                    <div className="flex-1">
                         <h1 className="font-pixel text-xl text-white neon-text">{user.name.toUpperCase()}</h1>
                         <p className="text-gray-500">{user.email}</p>
                         <p className="text-[#7f13ec] font-pixel text-[10px] mt-2">
                             MEMBER SINCE {formatDate(user.created_at).toUpperCase()}
                         </p>
                     </div>
+                    {user.is_admin && (
+                        <Link
+                            href="/admin"
+                            className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-[#7f13ec] to-[#ff2a6d] hover:from-[#6b10cc] hover:to-[#e02560] rounded-lg transition-all shadow-[0_0_20px_rgba(127,19,236,0.5)] hover:shadow-[0_0_30px_rgba(127,19,236,0.7)]"
+                        >
+                            <span className="material-symbols-outlined text-white">admin_panel_settings</span>
+                            <span className="font-pixel text-[10px] text-white">ADMIN PANEL</span>
+                        </Link>
+                    )}
                 </div>
 
                 {/* Stats */}
@@ -166,16 +176,16 @@ export default function Profile({ user, recentOrders, stats }: ProfileProps) {
                         </div>
                     </Link>
 
-                    <a
-                        href="/logout"
-                        className="bg-[#160b22] border border-[#7f13ec]/20 rounded-lg p-6 hover:border-red-500/50 transition-all group flex items-center gap-4"
+                    <button
+                        onClick={() => router.post('/logout')}
+                        className="bg-[#160b22] border border-[#7f13ec]/20 rounded-lg p-6 hover:border-red-500/50 transition-all group flex items-center gap-4 w-full text-left"
                     >
                         <span className="material-symbols-outlined text-2xl text-gray-500 group-hover:text-red-500">logout</span>
                         <div>
                             <p className="font-pixel text-[10px] text-white group-hover:text-red-500 transition-colors">LOGOUT</p>
                             <p className="text-gray-500 text-sm">Sign out of your account</p>
                         </div>
-                    </a>
+                    </button>
                 </div>
             </div>
         </StoreLayout>

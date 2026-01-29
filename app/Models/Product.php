@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
@@ -81,6 +82,17 @@ class Product extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Get the users who downloaded this product.
+     * Relación belongsToMany: Un producto puede ser descargado por muchos usuarios
+     */
+    public function downloadedBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_downloads')
+            ->withPivot('downloaded_at', 'ip_address')
+            ->withTimestamps();
     }
 
     /**
