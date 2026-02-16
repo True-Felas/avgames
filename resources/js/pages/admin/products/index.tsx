@@ -225,6 +225,13 @@ export default function ProductsIndex({ products, categories, filters }: Product
                                     </td>
                                     <td className="p-4">
                                         <div className="flex items-center justify-end gap-2">
+                                            <a
+                                                href={`/admin/products/${product.id}/files`}
+                                                className="p-2 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-all"
+                                                title="Manage Files"
+                                            >
+                                                <span className="material-symbols-outlined text-lg">cloud_upload</span>
+                                            </a>
                                             <Link
                                                 href={`/product/${product.slug}`}
                                                 className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"

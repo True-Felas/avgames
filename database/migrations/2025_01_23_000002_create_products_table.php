@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('short_description')->nullable();
             $table->decimal('price', 10, 2);
             $table->decimal('sale_price', 10, 2)->nullable();
-            $table->string('image')->nullable(); // Main product image
+            $table->text('image')->nullable(); // Main product image - URL can be long
             $table->json('gallery')->nullable(); // Additional images
             $table->integer('stock')->default(0);
             $table->boolean('is_featured')->default(false);

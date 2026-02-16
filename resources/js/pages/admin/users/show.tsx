@@ -1,6 +1,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '@/layouts/admin/admin-layout';
+import LevelBadge from '@/components/level-badge';
 
 interface Download {
     id: number;
@@ -275,18 +276,12 @@ export default function UserShow({ user, downloads }: UserShowProps) {
                             </form>
                         ) : (
                             <>
-                                <p className="text-4xl font-bold text-white mb-2">{user.level}</p>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-[10px]">
-                                        <span className="text-gray-500">XP: {user.experience}</span>
-                                        <span className="text-[#7f13ec]">{experienceToNextLevel} to next</span>
+                                <div className="flex items-center gap-6">
+                                    <div>
+                                        <p className="text-4xl font-bold text-white mb-2">{user.level}</p>
+                                        <p className="text-sm text-gray-500">Level based on downloads</p>
                                     </div>
-                                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-gradient-to-r from-[#7f13ec] to-[#ff2a6d] rounded-full transition-all"
-                                            style={{ width: `${experienceProgress}%` }}
-                                        ></div>
-                                    </div>
+                                    <LevelBadge level={user.level} downloads={user.downloads_count} />
                                 </div>
                             </>
                         )}

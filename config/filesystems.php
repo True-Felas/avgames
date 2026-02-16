@@ -41,8 +41,22 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
             'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'games' => [
+            'driver' => env('GAMES_DISK_DRIVER', 'local'),
+            'root' => storage_path('app/games'),
+            'host' => env('GAMES_SFTP_HOST'),
+            'username' => env('GAMES_SFTP_USERNAME'),
+            'password' => env('GAMES_SFTP_PASSWORD'),
+            'port' => (int) env('GAMES_SFTP_PORT', 22),
+            'root_path' => env('GAMES_SFTP_ROOT', '/'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/games',
+            'visibility' => 'private',
             'throw' => false,
             'report' => false,
         ],

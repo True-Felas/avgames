@@ -6,8 +6,6 @@ import StoreLayout from '@/layouts/store/store-layout';
 interface Product {
     id: number;
     name: string;
-    slug: string;
-    image: string;
     image_url: string;
     platform: string;
 }
@@ -15,38 +13,44 @@ interface Product {
 interface DownloadItem {
     id: number;
     product: Product;
-    quantity: number;
-    size: string;
+    file: {
+        id: number;
+        original_name: string;
+        file_size: number;
+        formatted_size: string;
+        version: string;
+    } | null;
 }
 
 interface DownloadQueueProps {
+    order: {
+        id: number;
+        order_number: string;
+    };
     items: DownloadItem[];
     totalSize: string;
     totalSizeBytes: number;
     itemCount: number;
 }
 
-export default function DownloadQueue({ items, totalSize, itemCount }: DownloadQueueProps) {
-    const [status, setStatus] = useState<'waiting' | 'initializing' | 'ready'>('waiting');
-    const [destination] = useState('/SDCARD/ROMS');
+export default function DownloadQueue({ order, items, totalSize, itemCount }: DownloadQueueProps) {
+    const [downloadingItems, setDownloadingItems] = useState<number[]>([]);
 
-    const handleInitialize = () => {
-        setStatus('initializing');
-        
+    const handleDownload = (fileId: number, itemId: number) => {
+        setDownloadingItems(prev => [...prev, itemId]);
+
+        // Trigger download
+        window.location.href = `/download/game/${fileId}`;
+
+        // Simulate a delay for UI feedback
         setTimeout(() => {
-            setStatus('ready');
-            
-            // Here you would implement the actual download logic
-            // For now, we just simulate the process
-            setTimeout(() => {
-                router.post('/downloads/initialize');
-            }, 2000);
-        }, 1500);
+            setDownloadingItems(prev => prev.filter(id => id !== itemId));
+        }, 2000);
     };
 
     return (
         <StoreLayout>
-            <Head title="Download Queue" />
+            <Head title={`Download Queue - Order #${order.order_number}`} />
 
             <div className="min-h-screen bg-[#0a050f] pb-20">
                 {/* Header */}
@@ -55,25 +59,23 @@ export default function DownloadQueue({ items, totalSize, itemCount }: DownloadQ
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <span className="material-symbols-outlined text-5xl text-[#7f13ec]">
-                                    download
+                                    cloud_download
                                 </span>
                                 <div>
                                     <h1 className="font-pixel text-2xl tracking-wider text-[#bc13fe]">
-                                        SYSTEM/DOWNLOADS
+                                        ORDER #{order.order_number}
                                     </h1>
                                     <p className="mt-1 font-mono text-sm text-[#7f13ec]/60">
-                                        Download Queue Management
+                                        PURCHASE COMPLETED - READY FOR UPLINK
                                     </p>
                                 </div>
                             </div>
                             <div className="rounded-lg border border-[#7f13ec]/30 bg-[#1a0d2e]/80 px-6 py-3 backdrop-blur-sm">
-                                <div className="font-mono text-xs uppercase tracking-wider text-[#7f13ec]/60">
-                                    STATUS
+                                <div className="font-mono text-xs uppercase tracking-wider text-[#7f13ec]/60 text-right">
+                                    ESTIMATED TOTAL
                                 </div>
                                 <div className="mt-1 font-pixel text-sm tracking-wider text-[#bc13fe]">
-                                    {status === 'waiting' && 'WAITING...'}
-                                    {status === 'initializing' && 'INITIALIZING...'}
-                                    {status === 'ready' && 'READY'}
+                                    {totalSize}
                                 </div>
                             </div>
                         </div>
@@ -87,10 +89,10 @@ export default function DownloadQueue({ items, totalSize, itemCount }: DownloadQ
                         <div className="flex items-center justify-between border-b border-[#7f13ec]/30 bg-gradient-to-r from-[#7f13ec] to-[#bc13fe] px-4 py-3">
                             <div className="flex items-center gap-3">
                                 <span className="material-symbols-outlined text-white">
-                                    check_circle
+                                    download_done
                                 </span>
-                                <span className="font-mono text-sm font-bold tracking-wide text-white">
-                                    Download_Queue_v3.exe
+                                <span className="font-mono text-sm font-bold tracking-wide text-white uppercase">
+                                    Secure_Downloader_v3.exe
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -110,33 +112,35 @@ export default function DownloadQueue({ items, totalSize, itemCount }: DownloadQ
                         {/* Window Content */}
                         <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-1">
                             {/* Table Header */}
-                            <div className="grid grid-cols-[80px_1fr_120px_120px] gap-4 border-b-2 border-gray-400 bg-gray-300 px-4 py-2">
+                            <div className="grid grid-cols-[80px_1fr_120px_120px_100px] gap-4 border-b-2 border-gray-400 bg-gray-300 px-4 py-2">
                                 <div className="font-mono text-xs font-bold uppercase tracking-wide text-gray-700">
-                                    
+
                                 </div>
                                 <div className="font-mono text-xs font-bold uppercase tracking-wide text-gray-700">
-                                    TITLE
+                                    TITLE & VERSION
                                 </div>
                                 <div className="font-mono text-xs font-bold uppercase tracking-wide text-gray-700">
-                                    CONS.
+                                    CONSOLE
+                                </div>
+                                <div className="font-mono text-xs font-bold uppercase tracking-wide text-gray-700">
+                                    FILE SIZE
                                 </div>
                                 <div className="text-right font-mono text-xs font-bold uppercase tracking-wide text-gray-700">
-                                    SIZE
+                                    ACTION
                                 </div>
                             </div>
 
                             {/* Items List */}
-                            <div className="max-h-[400px] overflow-y-auto bg-white">
+                            <div className="max-h-[500px] overflow-y-auto bg-white">
                                 {items.map((item, index) => (
                                     <div
                                         key={item.id}
-                                        className={`grid grid-cols-[80px_1fr_120px_120px] gap-4 px-4 py-4 ${
-                                            index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                                        } border-b border-gray-200 hover:bg-blue-50/50 transition-colors`}
+                                        className={`grid grid-cols-[80px_1fr_120px_120px_100px] gap-4 px-4 py-4 ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                                            } border-b border-gray-200 hover:bg-blue-50/50 transition-colors group`}
                                     >
                                         {/* Thumbnail */}
                                         <div className="flex items-center">
-                                            <div className="h-14 w-14 overflow-hidden rounded border-2 border-gray-300 bg-gray-900">
+                                            <div className="h-14 w-14 overflow-hidden rounded border-2 border-gray-300 bg-gray-900 shadow-sm">
                                                 <img
                                                     src={item.product.image_url}
                                                     alt={item.product.name}
@@ -145,125 +149,100 @@ export default function DownloadQueue({ items, totalSize, itemCount }: DownloadQ
                                             </div>
                                         </div>
 
-                                        {/* Title */}
-                                        <div className="flex items-center">
-                                            <span className="font-mono text-sm font-bold uppercase tracking-wide text-gray-900">
+                                        {/* Title & Version */}
+                                        <div className="flex flex-col justify-center">
+                                            <span className="font-mono text-sm font-bold uppercase tracking-wide text-gray-900 truncate">
                                                 {item.product.name}
                                             </span>
+                                            {item.file && (
+                                                <span className="font-pixel text-[8px] text-[#7f13ec]">
+                                                    LATEST BUILD v{item.file.version}
+                                                </span>
+                                            )}
                                         </div>
 
                                         {/* Platform Badge */}
                                         <div className="flex items-center">
-                                            <span className={`rounded border px-3 py-1 font-mono text-xs font-bold uppercase tracking-wider ${
-                                                item.product.platform === 'NES' ? 'border-red-300 bg-red-100 text-red-600' :
-                                                item.product.platform === 'SNES' ? 'border-blue-300 bg-blue-100 text-blue-600' :
-                                                item.product.platform === 'GBC' || item.product.platform === 'GB' ? 'border-green-300 bg-green-100 text-green-600' :
-                                                item.product.platform === 'GEN' || item.product.platform === 'Genesis' ? 'border-purple-300 bg-purple-100 text-purple-600' :
-                                                'border-gray-300 bg-gray-100 text-gray-600'
-                                            }`}>
-                                                {item.product.platform}
+                                            <span className={`rounded border px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider ${['NES', 'SNES', 'GBA', 'GBC', 'GB', 'N64'].includes(item.product.platform)
+                                                    ? 'border-[#7f13ec]/30 bg-[#7f13ec]/5 text-[#7f13ec]'
+                                                    : 'border-gray-300 bg-gray-100 text-gray-600'
+                                                }`}>
+                                                {item.product.platform || 'SYSTEM'}
                                             </span>
                                         </div>
 
                                         {/* Size */}
-                                        <div className="flex items-center justify-end">
+                                        <div className="flex items-center">
                                             <span className="font-mono text-sm font-bold text-gray-700">
-                                                {item.size}
+                                                {item.file ? item.file.formatted_size : 'N/A'}
                                             </span>
+                                        </div>
+
+                                        {/* Action */}
+                                        <div className="flex items-center justify-end">
+                                            {item.file ? (
+                                                <button
+                                                    onClick={() => handleDownload(item.file!.id, item.id)}
+                                                    disabled={downloadingItems.includes(item.id)}
+                                                    className={`p-2 rounded transition-all flex items-center justify-center ${downloadingItems.includes(item.id)
+                                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                            : 'bg-[#7f13ec] hover:bg-[#bc13fe] text-white shadow-lg shadow-[#7f13ec]/20 hover:-translate-y-0.5'
+                                                        }`}
+                                                    title="Start Download"
+                                                >
+                                                    <span className={`material-symbols-outlined ${downloadingItems.includes(item.id) ? 'animate-spin' : ''}`}>
+                                                        {downloadingItems.includes(item.id) ? 'sync' : 'download'}
+                                                    </span>
+                                                </button>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-gray-300" title="File not available">
+                                                    error
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
+                                {items.length === 0 && (
+                                    <div className="py-20 text-center">
+                                        <span className="material-symbols-outlined text-5xl text-gray-300 mb-2">inventory_2</span>
+                                        <p className="font-mono text-sm text-gray-500">NO OBJECTS IN QUEUE</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Summary Panel */}
-                    <div className="mt-8 overflow-hidden rounded-lg border-2 border-[#7f13ec]/30 bg-gradient-to-br from-[#1a0d2e] to-[#0a050f] p-6 shadow-xl shadow-[#7f13ec]/10">
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            {/* Left: Stats */}
-                            <div>
-                                <div className="mb-4 font-mono text-xs uppercase tracking-wider text-[#7f13ec]">
-                                    Total Payload
-                                </div>
-                                <div className="mb-6 font-pixel text-5xl tracking-wider text-white">
-                                    {totalSize}
-                                </div>
-
-                                <div className="space-y-3 border-t border-[#7f13ec]/20 pt-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-mono text-sm uppercase tracking-wide text-[#7f13ec]/70">
-                                            Items
-                                        </span>
-                                        <span className="font-mono text-xl font-bold text-white">
-                                            {String(itemCount).padStart(2, '0')}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-mono text-sm uppercase tracking-wide text-[#7f13ec]/70">
-                                            Destination
-                                        </span>
-                                        <span className="font-mono text-sm text-[#bc13fe]">
-                                            {destination}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Right: Action Button */}
-                            <div className="flex items-center justify-center">
-                                <button
-                                    onClick={handleInitialize}
-                                    disabled={status !== 'waiting'}
-                                    className={`group relative h-48 w-48 rounded-full transition-all duration-300 ${
-                                        status === 'waiting'
-                                            ? 'bg-gradient-to-br from-[#7f13ec] to-[#bc13fe] shadow-2xl shadow-[#7f13ec]/50 hover:scale-105 hover:shadow-[#bc13fe]/60'
-                                            : status === 'initializing'
-                                            ? 'animate-pulse bg-gradient-to-br from-[#7f13ec] to-[#bc13fe] shadow-2xl shadow-[#7f13ec]/50'
-                                            : 'bg-gradient-to-br from-green-600 to-green-400 shadow-2xl shadow-green-500/50'
-                                    } disabled:cursor-not-allowed`}
-                                >
-                                    <div className="flex h-full w-full flex-col items-center justify-center gap-3">
-                                        <span className="material-symbols-outlined text-6xl text-white">
-                                            {status === 'ready' ? 'check_circle' : 'power_settings_new'}
-                                        </span>
-                                        <div className="text-center">
-                                            <div className="font-mono text-xs uppercase tracking-wider text-white/90">
-                                                {status === 'waiting' && 'Start'}
-                                                {status === 'initializing' && 'Please Wait'}
-                                                {status === 'ready' && 'Complete'}
-                                            </div>
-                                            <div className="font-pixel text-[10px] uppercase tracking-wide text-white">
-                                                {status === 'waiting' && 'Initialization'}
-                                                {status === 'initializing' && 'Initializing...'}
-                                                {status === 'ready' && 'Ready'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </button>
+                    {/* Uplink Confirmation */}
+                    <div className="mt-8 rounded-lg border border-green-500/30 bg-green-500/10 p-4 backdrop-blur-sm flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-green-400 animate-pulse">sensors</span>
+                            <div className="font-mono text-[10px] uppercase tracking-widest text-green-400">
+                                CONNECTION SECURE :: SERVING FROM 10.8.0.1
                             </div>
                         </div>
-
-                        {/* Status Message */}
-                        <div className="mt-6 rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-center backdrop-blur-sm">
-                            <div className="font-mono text-sm uppercase tracking-widest text-green-400">
-                                {status === 'waiting' && '● READY FOR UPLINK'}
-                                {status === 'initializing' && '● ESTABLISHING CONNECTION...'}
-                                {status === 'ready' && '● DOWNLOAD READY TO START'}
-                            </div>
+                        <div className="font-pixel text-[8px] text-green-500/60 font-bold">
+                            UPLINK STATUS: STABLE
                         </div>
                     </div>
 
-                    {/* Back Button */}
-                    <div className="mt-6 text-center">
+                    {/* Footer Actions */}
+                    <div className="mt-8 flex items-center justify-between">
                         <button
-                            onClick={() => router.visit('/cart')}
-                            className="inline-flex items-center gap-2 border-2 border-dashed border-[#7f13ec]/30 px-6 py-3 font-mono text-sm uppercase tracking-wide text-[#7f13ec] transition-all hover:border-[#bc13fe]/50 hover:bg-[#7f13ec]/5 hover:text-[#bc13fe]"
+                            onClick={() => router.visit('/library')}
+                            className="inline-flex items-center gap-2 border border-[#7f13ec]/30 px-6 py-2.5 font-mono text-xs uppercase tracking-wide text-[#7f13ec] transition-all hover:bg-[#7f13ec]/10"
                         >
-                            <span className="material-symbols-outlined text-lg">
-                                arrow_back
+                            <span className="material-symbols-outlined text-sm">
+                                library_books
                             </span>
-                            Return to Cart
+                            Back to Library
                         </button>
+
+                        <div className="text-right">
+                            <p className="font-mono text-[10px] text-[#7f13ec]/80 uppercase mb-1">Queue Summary</p>
+                            <p className="font-pixel text-sm text-white">
+                                {itemCount} TITLES // {totalSize} DATA
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -69,10 +69,16 @@ class DashboardController extends Controller
             ]);
 
         // Top users by downloads
-        $topUsers = User::select('users.*')
+        $topUsers = User::select(
+            'users.id',
+            'users.name',
+            'users.email',
+            'users.level',
+            'users.status'
+        )
             ->leftJoin('user_downloads', 'users.id', '=', 'user_downloads.user_id')
             ->selectRaw('COUNT(user_downloads.id) as downloads_count')
-            ->groupBy('users.id')
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.level', 'users.status')
             ->orderByDesc('downloads_count')
             ->limit(10)
             ->get()
@@ -80,7 +86,7 @@ class DashboardController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'level' => $user->level,
+                'level' => $user->getCurrentLevel(),
                 'downloads_count' => $user->downloads_count,
                 'status' => $user->status,
             ]);

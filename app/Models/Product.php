@@ -96,6 +96,23 @@ class Product extends Model
     }
 
     /**
+     * Get all downloadable files for this product.
+     * Relación hasMany: Un producto puede tener múltiples archivos descargables
+     */
+    public function files(): HasMany
+    {
+        return $this->hasMany(ProductFile::class);
+    }
+
+    /**
+     * Get the active files only.
+     */
+    public function activeFiles(): HasMany
+    {
+        return $this->files()->where('is_active', true);
+    }
+
+    /**
      * Get the full image URL.
      */
     public function getImageUrlAttribute(): ?string
@@ -186,6 +203,16 @@ class Product extends Model
                 ->orWhere('description', 'like', "%{$term}%")
                 ->orWhere('developer', 'like', "%{$term}%")
                 ->orWhere('publisher', 'like', "%{$term}%");
+        });
+    }
+
+    /**
+     * Scope for products with active files.
+     */
+    public function scopeHasFiles($query)
+    {
+        return $query->whereHas('files', function ($q) {
+            $q->where('is_active', true);
         });
     }
 

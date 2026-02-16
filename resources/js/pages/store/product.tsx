@@ -30,6 +30,14 @@ interface Product {
         name: string;
         slug: string;
     };
+    active_files?: Array<{
+        id: number;
+        original_name: string;
+        file_size: number;
+        version: string;
+        description: string;
+        downloads: number;
+    }>;
 }
 
 interface ProductPageProps {
@@ -60,10 +68,25 @@ export default function ProductPage({ product, relatedProducts }: ProductPagePro
         return `€${Number(price).toFixed(2)}`;
     };
 
+    const formatSize = (bytes: number) => {
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let size = bytes;
+        let unitIndex = 0;
+        while (size > 1024 && unitIndex < units.length - 1) {
+            size /= 1024;
+            unitIndex++;
+        }
+        return `${size.toFixed(1)} ${units[unitIndex]}`;
+    };
+
+    const handleDownload = (fileId: number) => {
+        window.location.href = `/download/game/${fileId}`;
+    };
+
     return (
         <StoreLayout>
             <Head title={product.name} />
-            
+
             <div className="p-8">
                 {/* Breadcrumb */}
                 <nav className="mb-8 flex items-center gap-2 text-gray-500 font-pixel text-[10px]">
@@ -205,6 +228,55 @@ export default function ProductPage({ product, relatedProducts }: ProductPagePro
                             </button>
                         </div>
 
+                        {/* Files / Downloads */}
+                        {product.active_files && product.active_files.length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="font-pixel text-sm text-white">AVAILABLE FILES</h3>
+                                <div className="space-y-3">
+                                    {product.active_files.map((file) => (
+                                        <div key={file.id} className="bg-[#160b22] border border-[#7f13ec]/20 rounded p-4 flex items-center justify-between">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <span className="text-white font-medium">{file.original_name}</span>
+                                                    <span className="bg-[#7f13ec]/20 text-[#7f13ec] px-2 py-0.5 rounded font-pixel text-[8px]">
+                                                        V{file.version}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-xs text-gray-400 font-pixel text-[8px]">
+                                                    <span className="flex items-center gap-1">
+                                                        <span className="material-symbols-outlined text-[12px]">database</span>
+                                                        {formatSize(file.file_size)}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <span className="material-symbols-outlined text-[12px]">download</span>
+                                                        {file.downloads} DOWNLOADS
+                                                    </span>
+                                                </div>
+                                                {file.description && (
+                                                    <p className="text-[10px] text-gray-500 mt-2 italic">"{file.description}"</p>
+                                                )}
+                                            </div>
+
+                                            {product.is_free && (
+                                                <button
+                                                    onClick={() => handleDownload(file.id)}
+                                                    className="bg-[#7f13ec] hover:bg-[#bc13fe] text-white p-2 rounded transition-all flex items-center shadow-[0_0_10px_rgba(127,19,236,0.3)]"
+                                                    title="Download now"
+                                                >
+                                                    <span className="material-symbols-outlined">download</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                {!product.is_free && (
+                                    <p className="text-[10px] text-[#ff2a6d] font-pixel italic">
+                                        * Purchase required to access these files
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
                         {/* Details */}
                         <div className="space-y-4">
                             <h3 className="font-pixel text-sm text-white">DETAILS</h3>
@@ -251,7 +323,7 @@ export default function ProductPage({ product, relatedProducts }: ProductPagePro
                             <span className="w-1.5 h-6 bg-[#7f13ec] shadow-[0_0_10px_#7f13ec]"></span>
                             MORE FROM {product.category.name.toUpperCase()}
                         </h2>
-                        
+
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
                             {relatedProducts.map((relatedProduct) => (
                                 <ProductCard key={relatedProduct.id} product={relatedProduct} showCategory={false} />

@@ -49,14 +49,24 @@ class StatisticsController extends Controller
             ]);
 
         // Users who downloaded the most
-        $topDownloaders = DB::table('user_downloads')
-            ->join('users', 'user_downloads.user_id', '=', 'users.id')
-            ->select('users.id', 'users.name', 'users.email', 'users.level', 'users.status')
+        $topDownloaders = User::query()
+            ->leftJoin('user_downloads', 'users.id', '=', 'user_downloads.user_id')
+            ->select('users.id', 'users.name', 'users.email', 'users.status')
             ->selectRaw('COUNT(user_downloads.id) as downloads_count')
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.level', 'users.status')
+            ->groupBy('users.id', 'users.name', 'users.email', 'users.status')
             ->orderByDesc('downloads_count')
             ->limit(20)
-            ->get();
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'level' => $user->getCurrentLevel(),
+                    'status' => $user->status,
+                    'downloads_count' => $user->downloads_count,
+                ];
+            });
 
         // Downloads by category
         $downloadsByCategory = Category::select('categories.id', 'categories.name', 'categories.color')

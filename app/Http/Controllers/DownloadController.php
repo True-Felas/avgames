@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,41 +17,59 @@ class DownloadController extends Controller
      */
     public function index(Request $request): Response|RedirectResponse
     {
-        $cart = Cart::getCart(userId: Auth::id());
-        $cart->load('items.product');
+        $orderId = $request->get('order');
 
-        if ($cart->items->isEmpty()) {
-            return redirect()->route('cart.index')
-                ->with('error', 'Tu cola de descargas está vacía');
+        if ($orderId) {
+            $order = Order::with('items.product')->find($orderId);
+            if (!$order || $order->user_id !== Auth::id()) {
+                abort(403);
+            }
+        } else {
+            // Get last order
+            $order = Order::forUser(Auth::id())
+                ->with('items.product')
+                ->latest()
+                ->first();
         }
 
-        // Calculate total size in bytes (simulated for now)
-        $totalSize = $cart->items->sum(function ($item) {
-            // Simulate file sizes based on platform
-            $baseSize = match ($item->product->platform) {
-                'NES' => 240, // KB
-                'SNES' => 1200, // KB
-                'GBC', 'GB' => 512,
-                'GEN', 'MD' => 2400,
-                'GBA' => 4096,
-                default => 1024,
-            };
-            return $baseSize * $item->quantity;
+        if (!$order) {
+            return redirect()->route('library')
+                ->with('error', 'No tienes pedidos recientes para descargar.');
+        }
+
+        $items = $order->items->map(function ($item) {
+            // Find latest active file for this product
+            $latestFile = $item->product->activeFiles()->orderByDesc('version')->first();
+
+            return [
+                'id' => $item->id,
+                'product' => [
+                    'id' => $item->product->id,
+                    'name' => $item->product->name,
+                    'image_url' => $item->product->image_url,
+                    'platform' => $item->product->platform,
+                ],
+                'file' => $latestFile ? [
+                    'id' => $latestFile->id,
+                    'original_name' => $latestFile->original_name,
+                    'file_size' => $latestFile->file_size,
+                    'formatted_size' => $this->formatBytes($latestFile->file_size),
+                    'version' => $latestFile->version,
+                ] : null,
+            ];
+        });
+
+        $totalSizeBytes = $order->items->sum(function ($item) {
+            $latestFile = $item->product->activeFiles()->orderByDesc('version')->first();
+            return $latestFile ? $latestFile->file_size : 0;
         });
 
         return Inertia::render('store/download-queue', [
-            'cart' => $cart,
-            'items' => $cart->items->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'product' => $item->product,
-                    'quantity' => $item->quantity,
-                    'size' => $this->calculateFileSize($item->product->platform),
-                ];
-            }),
-            'totalSize' => $this->formatBytes($totalSize * 1024),
-            'totalSizeBytes' => $totalSize * 1024,
-            'itemCount' => $cart->items->count(),
+            'order' => $order,
+            'items' => $items,
+            'totalSize' => $this->formatBytes($totalSizeBytes),
+            'totalSizeBytes' => $totalSizeBytes,
+            'itemCount' => $order->items->count(),
         ]);
     }
 

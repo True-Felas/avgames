@@ -17,21 +17,27 @@ class CatalogController extends Controller
     {
         $featuredProduct = Product::with('category')
             ->active()
+            ->hasFiles()
             ->featured()
             ->newReleases()
             ->first();
 
         $popularProducts = Product::with('category')
             ->active()
+            ->hasFiles()
             ->orderByDesc('downloads')
             ->take(10)
             ->get();
 
         $categories = Category::active()
             ->ordered()
-            ->withCount(['products' => function ($query) {
-                $query->where('is_active', true);
-            }])
+            ->withCount([
+                'products' => function ($query) {
+                    $query->where('is_active', true)->whereHas('files', function ($q) {
+                        $q->where('is_active', true);
+                    });
+                }
+            ])
             ->get();
 
         return Inertia::render('store/home', [
@@ -46,7 +52,7 @@ class CatalogController extends Controller
      */
     public function catalog(Request $request): Response
     {
-        $query = Product::with('category')->active();
+        $query = Product::with('category')->active()->hasFiles();
 
         // Filter by category
         if ($request->filled('category')) {
@@ -96,9 +102,13 @@ class CatalogController extends Controller
 
         $categories = Category::active()
             ->ordered()
-            ->withCount(['products' => function ($q) {
-                $q->where('is_active', true);
-            }])
+            ->withCount([
+                'products' => function ($q) {
+                    $q->where('is_active', true)->whereHas('files', function ($q) {
+                        $q->where('is_active', true);
+                    });
+                }
+            ])
             ->get();
 
         $platforms = Product::active()
@@ -126,7 +136,7 @@ class CatalogController extends Controller
      */
     public function show(string $slug): Response
     {
-        $product = Product::with('category')
+        $product = Product::with(['category', 'activeFiles'])
             ->where('slug', $slug)
             ->active()
             ->firstOrFail();
@@ -152,6 +162,7 @@ class CatalogController extends Controller
     {
         $newReleases = Product::with('category')
             ->active()
+            ->hasFiles()
             ->newReleases()
             ->orderByDesc('created_at')
             ->take(10)
@@ -159,15 +170,18 @@ class CatalogController extends Controller
 
         $topRated = Product::with('category')
             ->active()
+            ->hasFiles()
             ->orderByDesc('rating')
             ->take(10)
             ->get();
 
         $categories = Category::active()
             ->ordered()
-            ->with(['products' => function ($query) {
-                $query->active()->orderByDesc('downloads')->take(4);
-            }])
+            ->with([
+                'products' => function ($query) {
+                    $query->active()->hasFiles()->orderByDesc('downloads')->take(4);
+                }
+            ])
             ->get();
 
         return Inertia::render('store/discover', [

@@ -552,7 +552,7 @@ export default function Statistics({
                                             </div>
                                         </td>
                                         <td className="p-3">
-                                            <span className="font-pixel text-[10px] text-[#7f13ec]">LVL {user.level}</span>
+                                            <LevelBadge level={user.level} downloads={user.downloads_count} />
                                         </td>
                                         <td className="p-3">
                                             <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[8px] font-bold ${

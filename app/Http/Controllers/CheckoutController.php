@@ -76,7 +76,7 @@ class CheckoutController extends Controller
         // For demo purposes, mark as completed immediately
         $order->markAsCompleted();
 
-        return redirect()->route('orders.show', $order)
+        return redirect()->route('downloads.queue', ['order' => $order->id])
             ->with('success', '¡Pedido completado! Gracias por tu compra.');
     }
 }

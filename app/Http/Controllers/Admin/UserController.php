@@ -86,7 +86,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'is_admin' => $user->is_admin,
-                'level' => $user->level,
+                'level' => $user->getCurrentLevel(),
                 'experience' => $user->experience,
                 'status' => $user->status,
                 'suspended_until' => $user->suspended_until?->format('Y-m-d H:i'),

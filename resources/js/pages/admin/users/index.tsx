@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AdminLayout from '@/layouts/admin/admin-layout';
+import LevelBadge from '@/components/level-badge';
 
 interface User {
     id: number;
@@ -227,13 +228,7 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
                                     </td>
                                     <td className="p-4">
                                         <div className="flex flex-col items-start">
-                                            <span className="font-pixel text-[10px] text-[#7f13ec]">LVL {user.level}</span>
-                                            <div className="w-20 h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden">
-                                                <div 
-                                                    className="h-full bg-[#7f13ec] rounded-full"
-                                                    style={{ width: `${(user.experience % 100)}%` }}
-                                                ></div>
-                                            </div>
+                                            <LevelBadge level={user.level} downloads={user.downloads_count} />
                                         </div>
                                     </td>
                                     <td className="p-4">

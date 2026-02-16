@@ -153,6 +153,35 @@ class User extends Authenticatable
     }
 
     /**
+     * Calculate level based on number of downloads.
+     * Level = (downloads / 5) + 1
+     * 0-4 downloads: Level 1
+     * 5-9 downloads: Level 2
+     * 10-14 downloads: Level 3, etc.
+     */
+    public function calculateLevelFromDownloads(): int
+    {
+        $downloadCount = $this->downloads()->count();
+        return (int) floor($downloadCount / 5) + 1;
+    }
+
+    /**
+     * Get the current level based on downloads.
+     */
+    public function getCurrentLevel(): int
+    {
+        return $this->calculateLevelFromDownloads();
+    }
+
+    /**
+     * Get download count for the user.
+     */
+    public function getDownloadCount(): int
+    {
+        return $this->downloads()->count();
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

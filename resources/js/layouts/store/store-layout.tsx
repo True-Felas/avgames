@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 
 interface StoreLayoutProps {
     children: ReactNode;
@@ -11,6 +11,8 @@ interface PageProps extends Record<string, unknown> {
             name: string;
             email: string;
             is_admin?: boolean;
+            level?: number;
+            downloads_count?: number;
         } | null;
     };
     cart: {
@@ -23,6 +25,31 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
     const { auth, cart } = usePage<PageProps>().props;
     const currentPath = window.location.pathname;
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [ping, setPing] = useState<number | null>(null);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const measurePing = async () => {
+            try {
+                const start = performance.now();
+                // cache-bust to avoid cached responses
+                await fetch(`/ping?cb=${Date.now()}`, { method: 'GET', credentials: 'same-origin' });
+                const ms = Math.max(0, Math.round(performance.now() - start));
+                if (mounted) setPing(ms);
+            } catch (e) {
+                if (mounted) setPing(null);
+            }
+        };
+
+        // measure immediately then every 10s
+        measurePing();
+        const id = setInterval(measurePing, 10000);
+        return () => {
+            mounted = false;
+            clearInterval(id);
+        };
+    }, []);
 
     const navLinks = [
         { name: 'HOME', href: '/', icon: 'home' },
@@ -75,12 +102,22 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
 
                 {/* User Level */}
                 <div className="p-6">
-                    <div className="p-4 rounded-lg bg-gradient-to-br from-[#7f13ec]/20 to-transparent border border-[#7f13ec]/10">
-                        <p className="text-[10px] font-pixel text-[#7f13ec] mb-2">LEVEL 42</p>
-                        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#7f13ec] w-2/3 shadow-[0_0_10px_#7f13ec]"></div>
+                    {auth?.user ? (
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-[#7f13ec]/20 to-transparent border border-[#7f13ec]/10">
+                            <p className="text-[10px] font-pixel text-[#7f13ec] mb-2">LEVEL {auth.user.level || 1}</p>
+                            <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mb-3">
+                                <div 
+                                    className="h-full bg-[#7f13ec] shadow-[0_0_10px_#7f13ec] transition-all"
+                                    style={{ width: `${((auth.user.downloads_count || 0) % 5) * 20}%` }}
+                                ></div>
+                            </div>
+                            <p className="text-[8px] text-[#7f13ec]/70">{auth.user.downloads_count || 0} Downloads</p>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-[#7f13ec]/20 to-transparent border border-[#7f13ec]/10 text-center">
+                            <p className="text-[10px] font-pixel text-[#7f13ec]">LOGIN TO VIEW LEVEL</p>
+                        </div>
+                    )}
                 </div>
             </aside>
 
@@ -103,7 +140,7 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
 
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 text-[#7f13ec]/60">
-                            <span className="font-pixel text-[10px]">PING: 24MS</span>
+                            <span className="font-pixel text-[10px]">PING: {ping !== null ? `${ping}ms`.toUpperCase() : '--'}</span>
                         </div>
 
                         {/* Cart button */}

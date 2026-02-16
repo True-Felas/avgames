@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\GameFileController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\StatisticsController as AdminStatisticsController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\GameDownloadController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +26,14 @@ use Laravel\Fortify\Features;
 // Home page
 Route::get('/', [CatalogController::class, 'index'])->name('home');
 
+// Simple ping endpoint used by the frontend to measure latency
+Route::get('/ping', function () {
+    // return server timestamp in milliseconds
+    return response()->json([
+        'ts' => (int) round(microtime(true) * 1000),
+    ]);
+});
+
 // Catalog / Library
 Route::get('/catalog', [CatalogController::class, 'catalog'])->name('catalog');
 Route::get('/library', [CatalogController::class, 'catalog'])->name('library');
@@ -33,6 +43,15 @@ Route::get('/discover', [CatalogController::class, 'discover'])->name('discover'
 
 // Product detail
 Route::get('/product/{slug}', [CatalogController::class, 'show'])->name('product.show');
+
+/*
+|--------------------------------------------------------------------------
+| Game Download Routes (Public with permission check)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/download/game/{productFile}', [GameDownloadController::class, 'download'])->name('download.game');
+Route::get('/api/games/{productFile}/info', [GameDownloadController::class, 'info'])->name('games.info');
 
 /*
 |--------------------------------------------------------------------------
@@ -92,6 +111,17 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 
     // Products CRUD
     Route::resource('products', AdminProductController::class);
+
+    // Game Files Management
+    Route::prefix('products/{product}/files')->name('games.files.')->group(function () {
+        Route::get('/', [GameFileController::class, 'index'])->name('index');
+        Route::get('/create', [GameFileController::class, 'create'])->name('create');
+        Route::post('/', [GameFileController::class, 'store'])->name('store');
+        Route::get('/{productFile}/edit', [GameFileController::class, 'edit'])->name('edit');
+        Route::patch('/{productFile}', [GameFileController::class, 'update'])->name('update');
+        Route::delete('/{productFile}', [GameFileController::class, 'destroy'])->name('destroy');
+        Route::patch('/{productFile}/toggle', [GameFileController::class, 'toggle'])->name('toggle');
+    });
 
     // Categories CRUD
     Route::resource('categories', AdminCategoryController::class);
