@@ -28,32 +28,33 @@ else
     echo "2️⃣  Clave de aplicación ya existe"
 fi
 
-# 3. Configurar BD remota
-echo "3️⃣  Configurando base de datos remota..."
+# 3. Configurar BD local (sqlite)
+echo "3️⃣  Configurando base de datos local (sqlite)..."
 
-# Cambiar valores en .env
-sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
-sed -i 's/^DB_HOST=.*/DB_HOST=10.8.0.1/' .env
-sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env
-sed -i 's/^DB_DATABASE=.*/DB_DATABASE=avgames/' .env
-sed -i 's/^DB_USERNAME=.*/DB_USERNAME=laravel/' .env
-sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=[REDACTED_PASSWORD]/' .env
+# Update .env to use sqlite and a project-local database file
+DB_FILE="database/database.sqlite"
+sed -i 's@^DB_CONNECTION=.*@DB_CONNECTION=sqlite@' .env
+sed -i "s@^DB_DATABASE=.*@DB_DATABASE=$PWD/$DB_FILE@" .env
+sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env || true
+sed -i 's/^DB_USERNAME=.*/DB_USERNAME=/' .env || true
+sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=/' .env || true
 
-# Asegurarse de que SESSION y CACHE usan BD
-sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=database/' .env
-sed -i 's/^CACHE_STORE=.*/CACHE_STORE=database/' .env
-sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=database/' .env
+# Use file-based session/cache/queue for local development
+sed -i 's/^SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env || true
+sed -i 's/^CACHE_STORE=.*/CACHE_STORE=file/' .env || true
+sed -i 's/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env || true
 
-echo "   ✅ BD remota configurada"
-
-# 4. Verificar conectividad
-echo "4️⃣  Verificando conectividad a la BD..."
-if timeout 5 bash -c "echo > /dev/tcp/10.8.0.1/3306" 2>/dev/null; then
-    echo "   ✅ BD remota es accesible"
+# Ensure database directory exists and sqlite file is present
+mkdir -p "$(dirname "$DB_FILE")"
+if [ ! -f "$DB_FILE" ]; then
+    echo "   Creando archivo sqlite: $DB_FILE"
+    touch "$DB_FILE"
+    echo "   ✅ Archivo sqlite creado"
 else
-    echo "   ⚠️  No se puede alcanzar la BD remota"
-    echo "   Verifica que WireGuard está activo con: wg show"
+    echo "   🔎 Archivo sqlite ya existe: $DB_FILE"
 fi
+
+echo "   ✅ Configuración de BD local aplicada"
 
 echo ""
 echo "✨ Configuración completada!"
