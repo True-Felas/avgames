@@ -46,15 +46,6 @@ Route::get('/product/{slug}', [CatalogController::class, 'show'])->name('product
 
 /*
 |--------------------------------------------------------------------------
-| Game Download Routes (Public with permission check)
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/download/game/{productFile}', [GameDownloadController::class, 'download'])->name('download.game');
-Route::get('/api/games/{productFile}/info', [GameDownloadController::class, 'info'])->name('games.info');
-
-/*
-|--------------------------------------------------------------------------
 | Cart Routes (Public - uses session for guests)
 |--------------------------------------------------------------------------
 */
@@ -83,13 +74,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
 
-    // Download Queue (replaces checkout)
+    // Game Downloads (auth required for all downloads)
+    Route::get('/download/game/{productFile}', [GameDownloadController::class, 'download'])->name('download.game');
+    Route::get('/api/games/{productFile}/info', [GameDownloadController::class, 'info'])->name('games.info');
+
+    // Download Queue
     Route::get('/downloads/queue', [DownloadController::class, 'index'])->name('downloads.queue');
     Route::post('/downloads/initialize', [DownloadController::class, 'initialize'])->name('downloads.initialize');
 
-    // Checkout (legacy - can be removed later)
+    // Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+
+    // Simulated Payment
+    Route::get('/payment/{order}', [CheckoutController::class, 'payment'])->name('payment.show');
+    Route::post('/payment/{order}/confirm', [CheckoutController::class, 'confirmPayment'])->name('payment.confirm');
 
     // Orders
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');

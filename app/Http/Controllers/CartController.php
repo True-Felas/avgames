@@ -49,6 +49,17 @@ class CartController extends Controller
             'quantity' => 'sometimes|integer|min:1|max:10',
         ]);
 
+        // Verificar que el producto tiene al menos un archivo descargable activo
+        if (!$product->activeFiles()->exists()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este producto no tiene archivos disponibles para descarga',
+                ], 422);
+            }
+            return back()->withErrors(['product' => 'Este producto no tiene archivos disponibles para descarga']);
+        }
+
         $cart = $this->getCart($request);
         $quantity = $request->get('quantity', 1);
 

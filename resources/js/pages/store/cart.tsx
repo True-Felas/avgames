@@ -163,31 +163,39 @@ export default function CartPage({ cart, items }: CartPageProps) {
                         {/* Order Summary */}
                         <div className="lg:col-span-1">
                             <div className="bg-[#160b22] border border-[#7f13ec]/20 rounded-lg p-6 sticky top-24">
-                                <h2 className="font-pixel text-sm text-white mb-6">DOWNLOAD QUEUE</h2>
+                                <h2 className="font-pixel text-sm text-white mb-6">ORDER SUMMARY</h2>
 
                                 <div className="space-y-4 mb-6">
                                     <div className="flex justify-between text-gray-400">
-                                        <span>Items in queue</span>
+                                        <span>Items</span>
                                         <span className="font-mono">{cart.items_count}</span>
                                     </div>
                                     <div className="flex justify-between text-gray-400">
-                                        <span>Total products</span>
-                                        <span className="font-mono">{items.reduce((sum, item) => sum + item.quantity, 0)}</span>
+                                        <span>Subtotal</span>
+                                        <span className="font-mono">{formatPrice(cart.total)}</span>
                                     </div>
+                                    {cart.total > 0 && (
+                                        <div className="flex justify-between text-gray-400">
+                                            <span>Tax (21%)</span>
+                                            <span className="font-mono">{formatPrice(cart.total * 0.21)}</span>
+                                        </div>
+                                    )}
                                     <div className="border-t border-[#7f13ec]/20 pt-4 flex justify-between text-white">
-                                        <span className="font-pixel text-sm">STATUS</span>
-                                        <span className="font-mono text-sm text-green-400">
-                                            ● READY
+                                        <span className="font-pixel text-sm">TOTAL</span>
+                                        <span className="font-pixel text-lg text-[#7f13ec]">
+                                            {cart.total > 0 ? formatPrice(cart.total * 1.21) : 'FREE'}
                                         </span>
                                     </div>
                                 </div>
 
                                 <Link
-                                    href="/downloads/queue"
+                                    href="/checkout"
                                     className="w-full bg-[#7f13ec] hover:bg-[#bc13fe] text-white font-pixel text-[12px] px-8 py-4 rounded-sm transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(127,19,236,0.5)] active:translate-y-1"
                                 >
-                                    <span className="material-symbols-outlined">download</span>
-                                    PREPARE DOWNLOAD
+                                    <span className="material-symbols-outlined">
+                                        {cart.total > 0 ? 'lock' : 'download'}
+                                    </span>
+                                    {cart.total > 0 ? 'PROCEED TO CHECKOUT' : 'GET FREE GAMES'}
                                 </Link>
 
                                 <Link

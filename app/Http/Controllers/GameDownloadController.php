@@ -18,12 +18,12 @@ class GameDownloadController extends Controller
             abort(404, 'Archivo no disponible');
         }
 
+        // Verificar que el producto esté activo
+        if (!$productFile->product->is_active) {
+            abort(404, 'Producto no disponible');
+        }
+
         // Verificar si el usuario tiene permiso para descargar
-        // Implementar lógica según tus necesidades:
-        // - ¿Usuario compró el producto?
-        // - ¿Es descarga gratuita?
-        // - ¿Es admin?
-        
         if (!$this->canDownload($request, $productFile)) {
             abort(403, 'No tienes permiso para descargar este archivo');
         }
@@ -32,13 +32,6 @@ class GameDownloadController extends Controller
             // Incrementar contador de descargas
             $productFile->incrementDownloads();
             $productFile->product->incrementDownloads();
-
-            // Log de descarga (opcional)
-            // \Log::info('Game downloaded', [
-            //     'product_file_id' => $productFile->id,
-            //     'user_id' => auth()->id(),
-            //     'ip' => $request->ip(),
-            // ]);
 
             // Descargar archivo
             return Storage::disk('games')->download(
@@ -53,23 +46,30 @@ class GameDownloadController extends Controller
 
     /**
      * Check if user can download the file.
+     * Requires authenticated user for ALL downloads (including free).
      */
     private function canDownload(Request $request, ProductFile $productFile): bool
     {
         $user = auth()->user();
 
+        // Requiere autenticación siempre (la ruta ya tiene middleware auth,
+        // esto es una segunda capa de seguridad)
+        if (!$user) {
+            return false;
+        }
+
         // Los admins siempre pueden descargar
-        if ($user && $user->is_admin) {
+        if ($user->is_admin) {
             return true;
         }
 
-        // Verificar si el producto es gratuito
+        // Producto gratuito → usuario logueado puede descargar
         if ($productFile->product->is_free) {
             return true;
         }
 
-        // Verificar si el usuario compró el producto
-        if ($user && $this->userPurchasedProduct($user->id, $productFile->product_id)) {
+        // Producto de pago → verificar que el usuario tiene un pedido completado
+        if ($this->userPurchasedProduct($user->id, $productFile->product_id)) {
             return true;
         }
 

@@ -216,16 +216,23 @@ export default function ProductPage({ product, relatedProducts }: ProductPagePro
                             </div>
 
                             {/* Add to Cart Button */}
-                            <button
-                                onClick={handleAddToCart}
-                                disabled={isAdding}
-                                className="w-full mt-6 bg-[#7f13ec] hover:bg-[#bc13fe] text-white font-pixel text-[12px] px-8 py-4 rounded-sm transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(127,19,236,0.5)] active:translate-y-1 disabled:opacity-50"
-                            >
-                                <span className="material-symbols-outlined">
-                                    {isAdding ? 'hourglass_empty' : 'add_shopping_cart'}
-                                </span>
-                                {isAdding ? 'ADDING...' : 'ADD TO CART'}
-                            </button>
+                            {product.active_files && product.active_files.length > 0 ? (
+                                <button
+                                    onClick={handleAddToCart}
+                                    disabled={isAdding}
+                                    className="w-full mt-6 bg-[#7f13ec] hover:bg-[#bc13fe] text-white font-pixel text-[12px] px-8 py-4 rounded-sm transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(127,19,236,0.5)] active:translate-y-1 disabled:opacity-50"
+                                >
+                                    <span className="material-symbols-outlined">
+                                        {isAdding ? 'hourglass_empty' : 'add_shopping_cart'}
+                                    </span>
+                                    {isAdding ? 'ADDING...' : 'ADD TO CART'}
+                                </button>
+                            ) : (
+                                <div className="w-full mt-6 bg-gray-800/50 text-gray-500 font-pixel text-[12px] px-8 py-4 rounded-sm flex items-center justify-center gap-3 cursor-not-allowed border border-gray-700/50">
+                                    <span className="material-symbols-outlined">block</span>
+                                    NOT AVAILABLE FOR DOWNLOAD
+                                </div>
+                            )}
                         </div>
 
                         {/* Files / Downloads */}

@@ -67,13 +67,13 @@ export default function OrderDetail({ order }: OrderDetailProps) {
     return (
         <StoreLayout>
             <Head title={`Order ${order.order_number}`} />
-            
+
             <div className="p-8">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link 
-                            href="/orders" 
+                        <Link
+                            href="/orders"
                             className="text-[#7f13ec] hover:text-white font-pixel text-[10px] flex items-center gap-2 mb-4"
                         >
                             <span className="material-symbols-outlined text-sm">arrow_back</span>
@@ -95,10 +95,10 @@ export default function OrderDetail({ order }: OrderDetailProps) {
                     <div className="lg:col-span-2 space-y-4">
                         <div className="bg-[#160b22] border border-[#7f13ec]/20 rounded-lg p-6">
                             <h2 className="font-pixel text-sm text-white mb-6">ITEMS</h2>
-                            
+
                             <div className="space-y-4">
                                 {order.items.map((item) => (
-                                    <div 
+                                    <div
                                         key={item.id}
                                         className="flex gap-4 pb-4 border-b border-[#7f13ec]/10 last:border-0 last:pb-0"
                                     >
@@ -180,14 +180,44 @@ export default function OrderDetail({ order }: OrderDetailProps) {
                             </div>
 
                             {order.status === 'completed' && (
-                                <div className="mt-6 p-4 bg-green-400/10 border border-green-400/30 rounded-lg">
-                                    <div className="flex items-center gap-3 text-green-400">
-                                        <span className="material-symbols-outlined">check_circle</span>
-                                        <div>
-                                            <p className="font-pixel text-[10px]">ORDER COMPLETED</p>
-                                            <p className="text-xs text-green-400/70">Your downloads are ready</p>
+                                <div className="mt-6 space-y-3">
+                                    <div className="p-4 bg-green-400/10 border border-green-400/30 rounded-lg">
+                                        <div className="flex items-center gap-3 text-green-400">
+                                            <span className="material-symbols-outlined">check_circle</span>
+                                            <div>
+                                                <p className="font-pixel text-[10px]">ORDER COMPLETED</p>
+                                                <p className="text-xs text-green-400/70">Your downloads are ready</p>
+                                            </div>
                                         </div>
                                     </div>
+                                    <Link
+                                        href={`/downloads/queue?order=${order.id}`}
+                                        className="w-full bg-[#7f13ec] hover:bg-[#bc13fe] text-white font-pixel text-[10px] px-6 py-3 rounded-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(127,19,236,0.4)]"
+                                    >
+                                        <span className="material-symbols-outlined text-sm">download</span>
+                                        VIEW DOWNLOADS
+                                    </Link>
+                                </div>
+                            )}
+
+                            {order.status === 'pending' && (
+                                <div className="mt-6 space-y-3">
+                                    <div className="p-4 bg-yellow-400/10 border border-yellow-400/30 rounded-lg">
+                                        <div className="flex items-center gap-3 text-yellow-400">
+                                            <span className="material-symbols-outlined animate-pulse">pending</span>
+                                            <div>
+                                                <p className="font-pixel text-[10px]">AWAITING PAYMENT</p>
+                                                <p className="text-xs text-yellow-400/70">Complete your payment to unlock downloads</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Link
+                                        href={`/payment/${order.id}`}
+                                        className="w-full bg-[#7f13ec] hover:bg-[#bc13fe] text-white font-pixel text-[10px] px-6 py-3 rounded-sm transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(127,19,236,0.4)]"
+                                    >
+                                        <span className="material-symbols-outlined text-sm">payment</span>
+                                        COMPLETE PAYMENT
+                                    </Link>
                                 </div>
                             )}
                         </div>
