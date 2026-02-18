@@ -49,9 +49,13 @@ interface ProductsIndexProps {
     products: PaginatedProducts;
     categories: Category[];
     filters: Filters;
+    stats: {
+        active: number;
+        inactive: number;
+    };
 }
 
-export default function ProductsIndex({ products, categories, filters }: ProductsIndexProps) {
+export default function ProductsIndex({ products, categories, filters, stats }: ProductsIndexProps) {
     const [search, setSearch] = useState(filters.search || '');
     const [deleteModal, setDeleteModal] = useState<Product | null>(null);
 
@@ -131,12 +135,12 @@ export default function ProductsIndex({ products, categories, filters }: Product
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#05ffa1]"></span>
                         <span className="text-sm text-gray-400">Active:</span>
-                        <span className="font-bold text-white">{products.data.filter(p => p.is_active).length}</span>
+                        <span className="font-bold text-white">{stats.active}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-gray-500"></span>
                         <span className="text-sm text-gray-400">Inactive:</span>
-                        <span className="font-bold text-white">{products.data.filter(p => !p.is_active).length}</span>
+                        <span className="font-bold text-white">{stats.inactive}</span>
                     </div>
                 </div>
 

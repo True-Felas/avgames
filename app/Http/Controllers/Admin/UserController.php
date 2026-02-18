@@ -44,9 +44,17 @@ class UserController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
+        // Get total counts for stats
+        $stats = [
+            'active' => User::where('status', 'active')->count(),
+            'suspended' => User::where('status', 'suspended')->count(),
+            'banned' => User::where('status', 'banned')->count(),
+        ];
+
         return Inertia::render('admin/users/index', [
             'users' => $users,
             'filters' => $request->only(['search', 'status', 'is_admin']),
+            'stats' => $stats,
         ]);
     }
 
@@ -95,7 +103,7 @@ class UserController extends Controller
                 'orders_count' => $user->orders->count(),
                 'downloads_count' => count($downloads),
             ],
-            'downloads' => $downloads,
+            'downloads' => $downloads ?? [],
         ]);
     }
 
