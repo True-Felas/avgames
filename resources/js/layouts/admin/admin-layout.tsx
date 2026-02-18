@@ -40,17 +40,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
 
     return (
         <div className="dark bg-[#0a050f] min-h-screen flex overflow-hidden">
-            {/* Scanline effect overlay */}
-            <div className="fixed inset-0 retro-scanline pointer-events-none z-50"></div>
-
-            {/* Grid background */}
-            <div className="fixed inset-0 opacity-10 pointer-events-none" style={{
-                backgroundImage: `
-                    linear-gradient(rgba(127, 19, 236, 0.3) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(127, 19, 236, 0.3) 1px, transparent 1px)
-                `,
-                backgroundSize: '50px 50px',
-            }}></div>
+            {/* Overlay removido para evitar fondo azul/verde */}
 
             {/* Sidebar */}
             <aside className="w-72 border-r border-[#7f13ec]/30 bg-[#0d0715]/90 backdrop-blur-xl flex flex-col z-40 fixed h-full">

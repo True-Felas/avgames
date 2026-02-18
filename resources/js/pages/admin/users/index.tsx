@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import AdminLayout from '@/layouts/admin/admin-layout';
 import LevelBadge from '@/components/level-badge';
+import AdminLayout from '@/layouts/admin/admin-layout';
 
 interface User {
     id: number;
@@ -41,9 +41,14 @@ interface Filters {
 interface UsersIndexProps {
     users: PaginatedUsers;
     filters: Filters;
+    stats: {
+        active: number;
+        suspended: number;
+        banned: number;
+    };
 }
 
-export default function UsersIndex({ users, filters }: UsersIndexProps) {
+export default function UsersIndex({ users, filters, stats }: UsersIndexProps) {
     const [search, setSearch] = useState(filters.search || '');
     const [actionModal, setActionModal] = useState<{ user: User; action: 'ban' | 'suspend' | 'delete' } | null>(null);
     const [banReason, setBanReason] = useState('');
@@ -175,17 +180,17 @@ export default function UsersIndex({ users, filters }: UsersIndexProps) {
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#05ffa1]"></span>
                         <span className="text-sm text-gray-400">Active:</span>
-                        <span className="font-bold text-white">{users.data.filter(u => u.status === 'active').length}</span>
+                        <span className="font-bold text-white">{stats.active}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#ffc107]"></span>
                         <span className="text-sm text-gray-400">Suspended:</span>
-                        <span className="font-bold text-white">{users.data.filter(u => u.status === 'suspended').length}</span>
+                        <span className="font-bold text-white">{stats.suspended}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#ff2a6d]"></span>
                         <span className="text-sm text-gray-400">Banned:</span>
-                        <span className="font-bold text-white">{users.data.filter(u => u.status === 'banned').length}</span>
+                        <span className="font-bold text-white">{stats.banned}</span>
                     </div>
                 </div>
 

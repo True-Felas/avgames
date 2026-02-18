@@ -32,10 +32,17 @@ class ProductController extends Controller
         $products = $query->orderByDesc('created_at')->paginate(20);
         $categories = Category::active()->ordered()->get();
 
+        // Get total counts for stats
+        $stats = [
+            'active' => Product::where('is_active', true)->count(),
+            'inactive' => Product::where('is_active', false)->count(),
+        ];
+
         return Inertia::render('admin/products/index', [
             'products' => $products,
             'categories' => $categories,
             'filters' => $request->only(['search', 'category']),
+            'stats' => $stats,
         ]);
     }
 
