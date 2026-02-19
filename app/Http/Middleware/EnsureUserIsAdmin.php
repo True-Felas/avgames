@@ -6,21 +6,27 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/* EnsureUserIsAdmin
+ *
+ * Middleware que restringe el acceso a rutas de administración.
+ * Solo permite continuar si el usuario está autenticado
+ * y tiene rol de administrador. */
+
 class EnsureUserIsAdmin
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->isAdmin()) {
+        $user = $request->user();
+
+        if (!$user || !$user->isAdmin()) {
+
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Unauthorized. Admin access required.'], 403);
+                return response()->json([
+                    'message' => 'Acceso restringido. Se requieren permisos de administrador.'
+                ], 403);
             }
 
-            abort(403, 'Unauthorized. Admin access required.');
+            abort(403, 'Acceso restringido. Se requieren permisos de administrador.');
         }
 
         return $next($request);

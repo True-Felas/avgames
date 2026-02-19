@@ -11,22 +11,18 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ShareCartData
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
+    /* Comparte el resumen del carrito con todas las vistas Inertia
+     * (número de items y total). */
+    
     public function handle(Request $request, Closure $next): Response
     {
-        // Share cart count with all Inertia responses
         Inertia::share([
-            'cart' => function () use ($request) {
+            'cart' => function () {
                 try {
                     if (Auth::check()) {
                         $cart = Cart::where('user_id', Auth::id())->first();
                     } else {
-                        $sessionId = session()->getId();
-                        $cart = Cart::where('session_id', $sessionId)->first();
+                        $cart = Cart::where('session_id', session()->getId())->first();
                     }
 
                     if ($cart) {
@@ -36,7 +32,7 @@ class ShareCartData
                         ];
                     }
                 } catch (\Exception $e) {
-                    // Ignore errors during cart fetch
+                    // Si hay error al obtener el carrito, no rompemos la app
                 }
 
                 return [

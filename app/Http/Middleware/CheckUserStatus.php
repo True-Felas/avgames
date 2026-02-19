@@ -6,45 +6,58 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+/* CheckUserStatus
+ *
+ * Middleware que controla el estado del usuario en cada petición.
+ * Si el usuario está baneado o suspendido:
+ * - Se cierra su sesión
+ * - Se bloquea el acceso
+ *
+ * Funciona como segunda capa de seguridad además del login. */
+
 class CheckUserStatus
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
         if ($user) {
+
+            // Usuario baneado
             if ($user->isBanned()) {
                 auth()->logout();
 
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Your account has been banned.',
+                        'message' => 'Tu cuenta ha sido bloqueada.',
                         'reason' => $user->ban_reason,
                     ], 403);
                 }
 
                 return redirect()->route('login')
-                    ->withErrors(['email' => 'Your account has been banned. Reason: ' . ($user->ban_reason ?? 'No reason provided')]);
+                    ->withErrors([
+                        'email' => 'Tu cuenta ha sido bloqueada. Motivo: ' . ($user->ban_reason ?? 'No especificado')
+                    ]);
             }
 
+            // Usuario suspendido temporalmente
             if ($user->isSuspended()) {
                 auth()->logout();
 
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'Your account has been suspended.',
+                        'message' => 'Tu cuenta está suspendida temporalmente.',
                         'reason' => $user->ban_reason,
                         'until' => $user->suspended_until?->toISOString(),
                     ], 403);
                 }
 
                 return redirect()->route('login')
-                    ->withErrors(['email' => 'Your account is suspended until ' . $user->suspended_until?->format('M d, Y H:i') . '. Reason: ' . ($user->ban_reason ?? 'No reason provided')]);
+                    ->withErrors([
+                        'email' => 'Tu cuenta está suspendida hasta ' .
+                            $user->suspended_until?->format('d/m/Y H:i') .
+                            '. Motivo: ' . ($user->ban_reason ?? 'No especificado')
+                    ]);
             }
         }
 
