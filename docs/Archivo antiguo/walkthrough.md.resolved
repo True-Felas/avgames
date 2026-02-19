@@ -1,0 +1,59 @@
+# Walkthrough: Flujo Compra/Pago Simulado/Descargas
+
+## Archivos modificados
+
+### P0 — Seguridad y Backend
+
+| Archivo | Cambio |
+|---|---|
+| [web.php](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/routes/web.php) | Download routes movidas dentro de `auth+verified`. Añadidas rutas `GET /payment/{order}` y `POST /payment/{order}/confirm` |
+| [GameDownloadController.php](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/app/Http/Controllers/GameDownloadController.php) | [canDownload()](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/app/Http/Controllers/GameDownloadController.php#72-103) exige auth siempre. Validado `product->is_active`. Arreglado doble conteo. Persistencia de Nivel implementada. |
+| [CartController.php](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/app/Http/Controllers/CartController.php) | [add()](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/app/Http/Controllers/CartController.php#43-67) valida ZIP activo antes de añadir |
+| [CheckoutController.php](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/app/Http/Controllers/CheckoutController.php) | Flujo free → auto-complete, paid → `pending`. |
+
+### P1 — Frontend
+
+| Archivo | Cambio |
+|---|---|
+| [cart.tsx](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/resources/js/pages/store/cart.tsx) | Sidebar con totales. Botón → "PROCEED TO CHECKOUT" |
+| [checkout.tsx](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/resources/js/pages/store/checkout.tsx) | `crypto` → `bank_transfer`. Flujo free simplificado |
+| [payment.tsx](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/resources/js/pages/store/payment.tsx) | **NUEVO**. Pantalla de pago simulado (PayPal, Bank, Card) |
+| [product.tsx](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/resources/js/pages/store/product.tsx) | ADD TO CART oculto si no hay ZIP |
+| [store-layout.tsx](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/resources/js/layouts/store/store-layout.tsx) | **Buscador habilitado** con redirección al pulsar Enter. |
+
+### P5 — Debugging & Estadísticas
+
+| Archivo | Cambio |
+|---|---|
+| [ProfileController.php](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/app/Http/Controllers/ProfileController.php) | Contador de perfil cambiado de 'comprados' a 'descargas reales'. |
+| [User.php](file:///c:/Users/Usuario/Documents/Grado%20S%20Programaci%C3%B3n%20-%20SEGUNDO/OPT%20-%20PHP/00%20PROYECTO%20FINAL%20II/avgames/app/Models/User.php) | Atributo `downloads_count` añadido al modelo para el frontend. |
+
+---
+
+## Flujo resultante
+
+```mermaid
+flowchart TD
+    A["Ficha Producto"] --> B{"¿Tiene ZIP activo?"}
+    B -->|NO| C["Botón deshabilitado"]
+    B -->|SÍ| D["ADD TO CART"]
+    D --> E["Carrito"]
+    E --> F["Checkout"]
+    F --> G{"¿Total = 0?"}
+    G -->|SÍ| H["GET FREE GAMES"]
+    H --> I["Download Queue ✅"]
+    G -->|NO| K["COMPLETE ORDER"]
+    K --> L["Pago Simulado"]
+    L --> I
+```
+
+---
+
+## Pruebas manuales finales
+
+1. ✅ **Buscador Global**: Escribir en cabecera + Enter → Redirige a librería correctamente.
+2. ✅ **Descargas**: Suman +1 exactamente (antes +2).
+3. ✅ **Perfil**: Estadísticas de descarga sincronizadas con el historial real.
+4. ✅ **Nivel**: Persistente en DB y visible en sidebar.
+
+---
