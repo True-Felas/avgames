@@ -89,6 +89,8 @@ class ProductController extends Controller
         // Subida de imagen (storage/public/products)
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($validated['image']);
         }
 
         // Slug único (para evitar choques si hay nombres repetidos)
@@ -140,6 +142,8 @@ class ProductController extends Controller
                 Storage::disk('public')->delete($product->image);
             }
             $validated['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($validated['image']);
         }
 
         $product->update($validated);
