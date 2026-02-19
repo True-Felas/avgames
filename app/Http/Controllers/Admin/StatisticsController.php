@@ -115,8 +115,12 @@ class StatisticsController extends Controller
                 'downloads' => $item->count,
             ]);
 
+        // Total downloads (sum of all products)
+        $totalDownloads = Product::sum('downloads');
+
         return Inertia::render('admin/statistics', [
             'period' => $period,
+            'totalDownloads' => $totalDownloads,
             'topProducts' => $topProducts,
             'downloadsOverTime' => $downloadsOverTime,
             'topDownloaders' => $topDownloaders,

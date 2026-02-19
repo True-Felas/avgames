@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class GameFileController extends Controller
 {
@@ -23,9 +24,11 @@ class GameFileController extends Controller
 
         $files = $product->files()->latest()->paginate(15);
 
-        return view('admin.games.files.index', [
+        return Inertia::render('admin/products/files/index', [
             'product' => $product,
             'files' => $files,
+            'success' => session('success'),
+            'error' => session('error'),
         ]);
     }
 
@@ -36,7 +39,7 @@ class GameFileController extends Controller
     {
         $this->authorize('manage-games');
 
-        return view('admin.games.files.create', [
+        return Inertia::render('admin/products/files/create', [
             'product' => $product,
         ]);
     }
@@ -96,7 +99,7 @@ class GameFileController extends Controller
 
         $this->ensureProductOwnsFile($product, $productFile);
 
-        return view('admin.games.files.edit', [
+        return Inertia::render('admin/products/files/edit', [
             'product' => $product,
             'file' => $productFile,
         ]);

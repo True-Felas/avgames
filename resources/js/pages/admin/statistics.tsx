@@ -48,6 +48,7 @@ interface HourlyData {
 
 interface StatisticsProps {
     period: string;
+    totalDownloads: number;
     topProducts: TopProduct[];
     downloadsOverTime: ChartData[];
     topDownloaders: TopDownloader[];
@@ -59,6 +60,7 @@ interface StatisticsProps {
 
 export default function Statistics({
     period,
+    totalDownloads,
     topProducts,
     downloadsOverTime,
     topDownloaders,
@@ -68,8 +70,8 @@ export default function Statistics({
     hourlyActivity,
 }: StatisticsProps) {
     // Calculate totals
-    const totalDownloads = topProducts.reduce((acc, p) => acc + p.downloads, 0);
-    const avgDownloadsPerProduct = topProducts.length > 0 ? Math.round(totalDownloads / topProducts.length) : 0;
+    const topProductsTotal = topProducts.reduce((acc, p) => acc + p.downloads, 0);
+    const avgDownloadsPerProduct = topProducts.length > 0 ? Math.round(topProductsTotal / topProducts.length) : 0;
 
     return (
         <AdminLayout title="STATISTICS">

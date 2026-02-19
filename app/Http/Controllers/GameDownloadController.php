@@ -29,9 +29,26 @@ class GameDownloadController extends Controller
         }
 
         try {
-            // Incrementar contador de descargas
-            $productFile->incrementDownloads();
-            $productFile->product->incrementDownloads();
+            // Solo incrementar estadísticas si es una petición GET real (evitar doble conteo por HEAD check del navegador)
+            if ($request->isMethod('GET')) {
+                // Incrementar contador de descargas
+                $productFile->incrementDownloads();
+                $productFile->product->incrementDownloads();
+
+                // Registrar descarga en el historial del usuario (para estadísticas y nivel)
+                if ($user = auth()->user()) {
+                    $user->downloads()->attach($productFile->product_id, [
+                        'downloaded_at' => now(),
+                        'ip_address' => $request->ip(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    // Actualizar nivel del usuario
+                    $user->level = $user->calculateLevelFromDownloads();
+                    $user->save();
+                }
+            }
 
             // Descargar archivo
             return Storage::disk('games')->download(
