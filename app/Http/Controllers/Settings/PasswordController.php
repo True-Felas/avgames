@@ -8,21 +8,26 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* PasswordController
+ *
+ * Gestión del cambio de contraseña del usuario autenticado.
+ * La validación se delega al FormRequest (PasswordUpdateRequest).
+ */
+
 class PasswordController extends Controller
 {
-    /**
-     * Show the user's password settings page.
-     */
+    /* Mostrar vista de cambio de contraseña */
+
     public function edit(): Response
     {
         return Inertia::render('settings/password');
     }
 
-    /**
-     * Update the user's password.
-     */
+    /* Actualizar contraseña del usuario */
+
     public function update(PasswordUpdateRequest $request): RedirectResponse
     {
+        // El FormRequest ya valida y autoriza la operación
         $request->user()->update([
             'password' => $request->password,
         ]);

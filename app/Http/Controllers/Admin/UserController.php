@@ -12,16 +12,21 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* UserController (Admin)
+ *
+ * Gestión de usuarios desde el panel de administración:
+ * listado con filtros, detalle del usuario, y acciones (admin/ban/suspend/etc.).
+ */
+
 class UserController extends Controller
 {
-    /**
-     * Display a listing of users.
-     */
+    /* Listado de usuarios con filtros básicos */
+
     public function index(Request $request): Response
     {
         $query = User::query();
 
-        // Search
+        // Buscar por nombre o email
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -30,12 +35,12 @@ class UserController extends Controller
             });
         }
 
-        // Filter by status
+        // Filtrar por estado (active/suspended/banned)
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filter by admin
+        // Filtrar por admin (viene como string)
         if ($request->filled('is_admin')) {
             $query->where('is_admin', $request->is_admin === 'true');
         }
@@ -44,7 +49,7 @@ class UserController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        // Get total counts for stats
+        // Contadores rápidos para mostrar arriba
         $stats = [
             'active' => User::where('status', 'active')->count(),
             'suspended' => User::where('status', 'suspended')->count(),
@@ -58,9 +63,8 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Show user details with downloads history.
-     */
+    /* Detalle del usuario + historial de descargas */
+
     public function show(User $user): Response
     {
         $user->load(['orders.items.product', 'downloads']);
@@ -79,7 +83,7 @@ class UserController extends Controller
             )
             ->orderByDesc('user_downloads.downloaded_at')
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'id' => $item->id,
                 'name' => $item->name,
                 'slug' => $item->slug,
@@ -107,9 +111,8 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Update user level and experience.
-     */
+    /* Ajuste manual de nivel/experiencia (admin) */
+
     public function updateLevel(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
@@ -119,22 +122,20 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return back()->with('success', 'User level updated successfully');
+        return back()->with('success', 'Nivel y experiencia actualizados');
     }
 
-    /**
-     * Update user admin status.
-     */
+    /* Dar/quitar admin */
+
     public function toggleAdmin(User $user): RedirectResponse
     {
         $user->update(['is_admin' => !$user->is_admin]);
 
-        return back()->with('success', $user->is_admin ? 'User is now an admin' : 'Admin privileges removed');
+        return back()->with('success', $user->is_admin ? 'El usuario ahora es admin' : 'Privilegios de admin retirados');
     }
 
-    /**
-     * Ban a user.
-     */
+    /* Banear usuario */
+
     public function ban(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
@@ -143,12 +144,11 @@ class UserController extends Controller
 
         $user->ban($validated['reason'] ?? null);
 
-        return back()->with('success', 'User has been banned');
+        return back()->with('success', 'Usuario baneado');
     }
 
-    /**
-     * Suspend a user temporarily.
-     */
+    /* Suspender usuario temporalmente */
+
     public function suspend(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
@@ -158,32 +158,29 @@ class UserController extends Controller
 
         $user->suspend(Carbon::parse($validated['until']), $validated['reason'] ?? null);
 
-        return back()->with('success', 'User has been suspended');
+        return back()->with('success', 'Usuario suspendido');
     }
 
-    /**
-     * Activate/unban a user.
-     */
+    /* Reactivar (quitar ban / quitar suspensión) */
+
     public function activate(User $user): RedirectResponse
     {
         $user->activate();
 
-        return back()->with('success', 'User has been activated');
+        return back()->with('success', 'Usuario activado');
     }
 
-    /**
-     * Delete a user account.
-     */
+    /* Borrar usuario (y evitar que te borres a ti mismo) */
+
     public function destroy(User $user): RedirectResponse
     {
-        // Prevent deleting yourself
         if ($user->id === auth()->id()) {
-            return back()->withErrors(['error' => 'You cannot delete your own account']);
+            return back()->withErrors(['error' => 'No puedes borrarte tu propia cuenta']);
         }
 
         $user->delete();
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User account has been deleted');
+            ->with('success', 'Cuenta eliminada correctamente');
     }
 }

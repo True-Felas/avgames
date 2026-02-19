@@ -12,11 +12,18 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* ProfileController
+ *
+ * Pantalla de perfil del usuario:
+ * - Ver datos y estado de verificación de email
+ * - Actualizar datos (y reiniciar verificación si cambia el email)
+ * - Eliminar cuenta (logout + borrado + limpiar sesión)
+ */
+
 class ProfileController extends Controller
 {
-    /**
-     * Show the user's profile settings page.
-     */
+    /* Mostrar vista de perfil */
+
     public function edit(Request $request): Response
     {
         return Inertia::render('settings/profile', [
@@ -25,25 +32,26 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile settings.
-     */
+    /* Actualizar datos del perfil */
+
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        $user->fill($request->validated());
+
+        // Si se cambia el email, se fuerza nueva verificación
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
 
         return to_route('profile.edit');
     }
 
-    /**
-     * Delete the user's account.
-     */
+    /* Eliminar cuenta del usuario */
+
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
     {
         $user = $request->user();
@@ -52,6 +60,7 @@ class ProfileController extends Controller
 
         $user->delete();
 
+        // Limpiar sesión y token CSRF por seguridad
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

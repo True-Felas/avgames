@@ -12,19 +12,26 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* ProductController (Admin)
+ *
+ * CRUD de productos (juegos) desde el panel de administración.
+ * Incluye listado con filtros (búsqueda y categoría) y subida de imagen.
+ */
+
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of products (admin).
-     */
+    /* Listado de productos con filtros básicos (admin) */
+
     public function index(Request $request): Response
     {
         $query = Product::with('category');
 
+        // Filtro por búsqueda (scope search del modelo)
         if ($request->filled('search')) {
             $query->search($request->search);
         }
 
+        // Filtro por categoría
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
@@ -32,7 +39,7 @@ class ProductController extends Controller
         $products = $query->orderByDesc('created_at')->paginate(20);
         $categories = Category::active()->ordered()->get();
 
-        // Get total counts for stats
+        // Stats simples para la cabecera del admin
         $stats = [
             'active' => Product::where('is_active', true)->count(),
             'inactive' => Product::where('is_active', false)->count(),
@@ -46,9 +53,8 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new product.
-     */
+    /* Formulario de creación */
+
     public function create(): Response
     {
         $categories = Category::active()->ordered()->get();
@@ -58,9 +64,8 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created product.
-     */
+    /* Guardar un producto nuevo */
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -81,12 +86,12 @@ class ProductController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        // Handle image upload
+        // Subida de imagen (storage/public/products)
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        // Generate slug
+        // Slug único (para evitar choques si hay nombres repetidos)
         $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
 
         Product::create($validated);
@@ -95,9 +100,8 @@ class ProductController extends Controller
             ->with('success', 'Producto creado correctamente');
     }
 
-    /**
-     * Show the form for editing a product.
-     */
+    /* Formulario de edición */
+
     public function edit(Product $product): Response
     {
         $categories = Category::active()->ordered()->get();
@@ -108,9 +112,8 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified product.
-     */
+    /* Actualizar un producto */
+
     public function update(Request $request, Product $product): RedirectResponse
     {
         $validated = $request->validate([
@@ -131,9 +134,8 @@ class ProductController extends Controller
             'image' => 'nullable|image|max:2048',
         ]);
 
-        // Handle image upload
+        // Si viene imagen nueva, borramos la vieja (si era local) y guardamos la nueva
         if ($request->hasFile('image')) {
-            // Delete old image if exists
             if ($product->image && !str_starts_with($product->image, 'http')) {
                 Storage::disk('public')->delete($product->image);
             }
@@ -146,12 +148,11 @@ class ProductController extends Controller
             ->with('success', 'Producto actualizado correctamente');
     }
 
-    /**
-     * Remove the specified product.
-     */
+    /* Eliminar un producto */
+
     public function destroy(Product $product): RedirectResponse
     {
-        // Delete image if exists
+        // Borramos imagen local si existía
         if ($product->image && !str_starts_with($product->image, 'http')) {
             Storage::disk('public')->delete($product->image);
         }

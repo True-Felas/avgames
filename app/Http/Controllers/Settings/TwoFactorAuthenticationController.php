@@ -10,11 +10,17 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
 
+/* TwoFactorAuthenticationController
+ *
+ * Pantalla de ajustes de 2FA (Fortify).
+ * Si está activado "confirmPassword" en la feature, se exige confirmar contraseña
+ * antes de mostrar la pantalla (password.confirm solo para el método show).
+ */
+
 class TwoFactorAuthenticationController extends Controller implements HasMiddleware
 {
-    /**
-     * Get the middleware that should be assigned to the controller.
-     */
+    /* Middleware del controlador (condicional según configuración de Fortify) */
+
     public static function middleware(): array
     {
         return Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword')
@@ -22,11 +28,11 @@ class TwoFactorAuthenticationController extends Controller implements HasMiddlew
             : [];
     }
 
-    /**
-     * Show the user's two-factor authentication settings page.
-     */
+    /* Mostrar vista de configuración de 2FA */
+
     public function show(TwoFactorAuthenticationRequest $request): Response
     {
+        // Validación extra (según vuestro Request) antes de renderizar la vista
         $request->ensureStateIsValid();
 
         return Inertia::render('settings/two-factor', [

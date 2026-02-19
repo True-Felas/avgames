@@ -7,17 +7,21 @@ use App\Models\Product;
 use App\Models\ProductFile;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+
+/* GameFileController (Admin)
+ *
+ * Gestión de archivos ZIP asociados a un producto:
+ * listar, subir, editar datos, activar/desactivar y eliminar.
+ */
 
 class GameFileController extends Controller
 {
     use AuthorizesRequests;
 
-    /**
-     * Show product files management page.
-     */
+    /* Listado de archivos del producto */
+
     public function index(Product $product)
     {
         $this->authorize('manage-games');
@@ -32,9 +36,8 @@ class GameFileController extends Controller
         ]);
     }
 
-    /**
-     * Show upload form.
-     */
+    /* Formulario de subida */
+
     public function create(Product $product)
     {
         $this->authorize('manage-games');
@@ -44,9 +47,8 @@ class GameFileController extends Controller
         ]);
     }
 
-    /**
-     * Store the uploaded file.
-     */
+    /* Guardar el ZIP subido y registrar en BD */
+
     public function store(Request $request, Product $product)
     {
         $this->authorize('manage-games');
@@ -60,14 +62,14 @@ class GameFileController extends Controller
         try {
             $file = $request->file('file');
 
-            // Generate unique filename
+            // Nombre único para evitar colisiones
             $filename = Str::uuid() . '_' . time() . '.' . $file->getClientOriginalExtension();
 
-            // Store file in 'games' disk
+            // Guardar en el disk "games" dentro de products/{id}
             $filePath = $file->storeAs('products/' . $product->id, $filename, 'games');
 
-            // Create database record
-            $productFile = ProductFile::create([
+            // Registro en base de datos
+            ProductFile::create([
                 'product_id' => $product->id,
                 'filename' => $filename,
                 'original_name' => $file->getClientOriginalName(),
@@ -90,9 +92,8 @@ class GameFileController extends Controller
         }
     }
 
-    /**
-     * Edit file details.
-     */
+    /* Editar datos del archivo */
+
     public function edit(Product $product, ProductFile $productFile)
     {
         $this->authorize('manage-games');
@@ -105,9 +106,8 @@ class GameFileController extends Controller
         ]);
     }
 
-    /**
-     * Update file details.
-     */
+    /* Actualizar datos del archivo */
+
     public function update(Request $request, Product $product, ProductFile $productFile)
     {
         $this->authorize('manage-games');
@@ -127,9 +127,8 @@ class GameFileController extends Controller
             ->with('success', 'Archivo actualizado correctamente');
     }
 
-    /**
-     * Delete file.
-     */
+    /* Eliminar archivo (storage + BD) */
+
     public function destroy(Product $product, ProductFile $productFile)
     {
         $this->authorize('manage-games');
@@ -137,10 +136,10 @@ class GameFileController extends Controller
         $this->ensureProductOwnsFile($product, $productFile);
 
         try {
-            // Delete from storage
+            // Borrar en storage (vía método del modelo)
             $productFile->deleteFile();
 
-            // Delete from database
+            // Borrar registro
             $productFile->delete();
 
             return redirect()
@@ -153,9 +152,8 @@ class GameFileController extends Controller
         }
     }
 
-    /**
-     * Toggle file active status.
-     */
+    /* Activar / desactivar un archivo */
+
     public function toggle(Product $product, ProductFile $productFile)
     {
         $this->authorize('manage-games');
@@ -169,13 +167,12 @@ class GameFileController extends Controller
         return back()->with('success', 'Estado actualizado correctamente');
     }
 
-    /**
-     * Ensure the file belongs to the product.
-     */
+    /* Seguridad: asegurar que el archivo realmente pertenece al producto */
+
     private function ensureProductOwnsFile(Product $product, ProductFile $productFile): void
     {
         if ($productFile->product_id !== $product->id) {
-            abort(403, 'Unauthorized');
+            abort(403, 'No autorizado');
         }
     }
 }
