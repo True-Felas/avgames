@@ -88,6 +88,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 98000,
                 'is_featured' => true,
                 'is_new_release' => false,
+                'image' => 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=2147&auto=format&fit=crop',
             ],
             [
                 'category' => 'rpg',
@@ -102,6 +103,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 145000,
                 'is_featured' => true,
                 'is_new_release' => false,
+                'image' => 'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop',
             ],
             [
                 'category' => 'platformer',
@@ -116,6 +118,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 112000,
                 'is_featured' => false,
                 'is_new_release' => true,
+                'image' => 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop',
             ],
             [
                 'category' => 'shooter',
@@ -130,6 +133,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 88000,
                 'is_featured' => false,
                 'is_new_release' => false,
+                'image' => 'https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=1902&auto=format&fit=crop',
             ],
             [
                 'category' => 'fighting',
@@ -144,6 +148,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 76000,
                 'is_featured' => false,
                 'is_new_release' => false,
+                'image' => 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
             ],
             [
                 'category' => 'racing',
@@ -158,6 +163,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 65000,
                 'is_featured' => false,
                 'is_new_release' => false,
+                'image' => 'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?q=80&w=2070&auto=format&fit=crop',
             ],
             [
                 'category' => 'puzzle',
@@ -172,6 +178,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 54000,
                 'is_featured' => false,
                 'is_new_release' => true,
+                'image' => 'https://images.unsplash.com/photo-1553481199-077eb1f07974?q=80&w=2070&auto=format&fit=crop',
             ],
             [
                 'category' => 'arcade',
@@ -186,6 +193,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 42000,
                 'is_featured' => false,
                 'is_new_release' => false,
+                'image' => 'https://images.unsplash.com/photo-1533236897111-3e94666b2dda?q=80&w=1974&auto=format&fit=crop',
             ],
             [
                 'category' => 'adventure',
@@ -200,12 +208,13 @@ class DemoSeeder extends Seeder
                 'downloads' => 73000,
                 'is_featured' => false,
                 'is_new_release' => false,
+                'image' => 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop',
             ],
             [
                 'category' => 'rpg',
                 'name' => 'CRYSTAL WARS: DAWN',
                 'slug' => 'crystal-wars-dawn',
-                'description' => 'El universo se fragmenta y solo tú puedes reunir los 7 cristales del poder. RPG de mundo abierto con sistema de crafting, gremios y 40+ horas de contenido.',
+                'description' => 'El universe se fragmenta y solo tú puedes reunir los 7 cristales del poder. RPG de mundo abierto con sistema de crafting, gremios y 40+ horas de contenido.',
                 'price' => 0,
                 'platform' => 'SNES',
                 'developer' => 'OPAL INTERACTIVE',
@@ -214,6 +223,7 @@ class DemoSeeder extends Seeder
                 'downloads' => 132000,
                 'is_featured' => true,
                 'is_new_release' => true,
+                'image' => 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2114&auto=format&fit=crop',
             ],
         ];
 
@@ -235,7 +245,7 @@ class DemoSeeder extends Seeder
                     'stock' => 999,
                     'is_active' => true,
                     'publisher' => 'RETRO STORE PUBLISHING',
-                    'image' => null,
+                    'image' => $gameData['image'] ?? null,
                 ])
             );
         }

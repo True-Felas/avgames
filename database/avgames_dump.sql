@@ -292,7 +292,7 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) NOT NULL,
   `batch` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -315,7 +315,8 @@ INSERT INTO `migrations` VALUES
 (10,'2025_08_26_100418_add_two_factor_columns_to_users_table',1),
 (11,'2026_01_29_000001_add_admin_and_status_fields_to_users_table',1),
 (12,'2026_01_29_000002_create_user_downloads_table',1),
-(13,'2025_02_09_000000_create_product_files_table',2);
+(13,'2025_02_09_000000_create_product_files_table',2),
+(14,'2026_02_19_193146_change_product_image_to_text',3);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -479,7 +480,7 @@ CREATE TABLE `products` (
   `short_description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
   `sale_price` decimal(10,2) DEFAULT NULL,
-  `image` varchar(255) DEFAULT NULL,
+  `image` text DEFAULT NULL,
   `gallery` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`gallery`)),
   `stock` int(11) NOT NULL DEFAULT 0,
   `is_featured` tinyint(1) NOT NULL DEFAULT 0,
@@ -511,16 +512,16 @@ LOCK TABLES `products` WRITE;
 set autocommit=0;
 INSERT INTO `products` VALUES
 (1,1,'hola','hola-699758b9d8371','aaaa','aaa',0.00,NULL,'products/xyzgsmfsqfsQt0L7DvY2Bii55YzUkxizDX8W0MtD.jpg',NULL,999,0,0,1,'PC',NULL,NULL,2026,0.0,0,'2026-02-19 17:38:49','2026-02-19 17:38:49'),
-(2,1,'SHADOW BLADE: ORIGINS','shadow-blade-origins','Un ninja en busca de venganza atraviesa 12 niveles de acción frenética pixel art. Combates cuerpo a cuerpo fluidos, secretos ocultos y un jefe final que te dejará sin palabras.','Un ninja en busca de venganza atraviesa 12 niveles de acción frenética pixel art. Combates cuerpo a cuerpo fluidos, secr',0.00,NULL,NULL,NULL,999,1,0,1,'NES','PIXEL NINJAS','RETRO STORE PUBLISHING',1990,4.8,98000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(3,3,'DRAGON VALE: LEGACY','dragon-vale-legacy','Un RPG épico con más de 30 horas de historia, 6 personajes jugables y combates por turnos. Explora mazmorras, forja alianzas y derrota al Dragón Oscuro.','Un RPG épico con más de 30 horas de historia, 6 personajes jugables y combates por turnos. Explora mazmorras, forja alia',0.00,NULL,NULL,NULL,999,1,0,1,'SNES','MYTHFORGE STUDIOS','RETRO STORE PUBLISHING',1994,4.9,145000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(4,6,'METRO RUNNER','metro-runner','Salta, desliza y corre a través de la ciudad subterránea. 8 mundos, 64 niveles y potenciadores secretos en este clásico de plataformas a gran velocidad.','Salta, desliza y corre a través de la ciudad subterránea. 8 mundos, 64 niveles y potenciadores secretos en este clásico ',0.00,NULL,NULL,NULL,999,0,1,1,'Genesis','SPEED PIXELS','RETRO STORE PUBLISHING',1992,4.7,112000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(5,2,'GALAXY FORCE III','galaxy-force-iii','Pilota tu cazaestrellas por 10 galaxias distintas. Potencia tus armas, esquiva oleadas de enemigos y enfrenta jefes colosales en este shooter espacial definitivo.','Pilota tu cazaestrellas por 10 galaxias distintas. Potencia tus armas, esquiva oleadas de enemigos y enfrenta jefes colo',0.00,NULL,NULL,NULL,999,0,0,1,'Arcade','STARBLAST INC.','RETRO STORE PUBLISHING',1991,4.6,88000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(6,7,'IRON FIST TOURNAMENT','iron-fist-tournament','Elige entre 8 luchadores únicos con movimientos especiales devastadores. Arcade, Versus y Story Mode incluidos en el mejor juego de peleas de los 90.','Elige entre 8 luchadores únicos con movimientos especiales devastadores. Arcade, Versus y Story Mode incluidos en el mej',0.00,NULL,NULL,NULL,999,0,0,1,'Arcade','COMBAT BYTE','RETRO STORE PUBLISHING',1993,4.5,76000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(7,4,'NITRO CIRCUIT','nitro-circuit','Compite en 16 pistas de todo el mundo con 10 vehículos desbloqueables. Derrapa en cada curva y cruza la meta primero en este clásico del racing retro.','Compite en 16 pistas de todo el mundo con 10 vehículos desbloqueables. Derrapa en cada curva y cruza la meta primero en ',0.00,NULL,NULL,NULL,999,0,0,1,'SNES','TURBO BYTE','RETRO STORE PUBLISHING',1995,4.4,65000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(8,5,'MIND SHIFT','mind-shift','100 niveles de puzzles con mecánicas que doblan la mente. Gravedad invertida, portales y bloques que cambian de forma. El juego de puzzles más original del 8-bit.','100 niveles de puzzles con mecánicas que doblan la mente. Gravedad invertida, portales y bloques que cambian de forma. E',0.00,NULL,NULL,NULL,999,0,1,1,'Game Boy','LOGICA GAMES','RETRO STORE PUBLISHING',1996,4.8,54000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(9,8,'COIN OP CLASSICS VOL.1','coin-op-classics-vol1','Colección de 5 juegos de arcade icónicos en un solo cartucho. Incluye Breakout, Snake, Frogger, Pac-Man clone y Space Invaders. Diversión sin fin garantizada.','Colección de 5 juegos de arcade icónicos en un solo cartucho. Incluye Breakout, Snake, Frogger, Pac-Man clone y Space In',0.00,NULL,NULL,NULL,999,0,0,1,'NES','NOSTALGIA BITS','RETRO STORE PUBLISHING',1989,4.3,42000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(10,1,'LOST ARK: PIXEL EDITION','lost-ark-pixel-edition','Archaeología de acción en vista isométrica. Descifra jeroglíficos, desactiva trampas y escapa de templos antes de que se derrumben. Indiana Jones en 8-bit.','Archaeología de acción en vista isométrica. Descifra jeroglíficos, desactiva trampas y escapa de templos antes de que se',0.00,NULL,NULL,NULL,999,0,0,1,'NES','EXPLORE INC.','RETRO STORE PUBLISHING',1990,4.6,73000,'2026-02-19 17:39:37','2026-02-19 17:39:37'),
-(11,3,'CRYSTAL WARS: DAWN','crystal-wars-dawn','El universo se fragmenta y solo tú puedes reunir los 7 cristales del poder. RPG de mundo abierto con sistema de crafting, gremios y 40+ horas de contenido.','El universo se fragmenta y solo tú puedes reunir los 7 cristales del poder. RPG de mundo abierto con sistema de crafting',0.00,NULL,NULL,NULL,999,1,1,1,'SNES','OPAL INTERACTIVE','RETRO STORE PUBLISHING',1997,4.9,132000,'2026-02-19 17:39:37','2026-02-19 17:39:37');
+(2,1,'SHADOW BLADE: ORIGINS','shadow-blade-origins','Un ninja en busca de venganza atraviesa 12 niveles de acción frenética pixel art. Combates cuerpo a cuerpo fluidos, secretos ocultos y un jefe final que te dejará sin palabras.','Un ninja en busca de venganza atraviesa 12 niveles de acción frenética pixel art. Combates cuerpo a cuerpo fluidos, secr',0.00,NULL,'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=2147&auto=format&fit=crop',NULL,999,1,0,1,'NES','PIXEL NINJAS','RETRO STORE PUBLISHING',1990,4.8,98000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(3,3,'DRAGON VALE: LEGACY','dragon-vale-legacy','Un RPG épico con más de 30 horas de historia, 6 personajes jugables y combates por turnos. Explora mazmorras, forja alianzas y derrota al Dragón Oscuro.','Un RPG épico con más de 30 horas de historia, 6 personajes jugables y combates por turnos. Explora mazmorras, forja alia',0.00,NULL,'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071&auto=format&fit=crop',NULL,999,1,0,1,'SNES','MYTHFORGE STUDIOS','RETRO STORE PUBLISHING',1994,4.9,145000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(4,6,'METRO RUNNER','metro-runner','Salta, desliza y corre a través de la ciudad subterránea. 8 mundos, 64 niveles y potenciadores secretos en este clásico de plataformas a gran velocidad.','Salta, desliza y corre a través de la ciudad subterránea. 8 mundos, 64 niveles y potenciadores secretos en este clásico ',0.00,NULL,'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop',NULL,999,0,1,1,'Genesis','SPEED PIXELS','RETRO STORE PUBLISHING',1992,4.7,112000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(5,2,'GALAXY FORCE III','galaxy-force-iii','Pilota tu cazaestrellas por 10 galaxias distintas. Potencia tus armas, esquiva oleadas de enemigos y enfrenta jefes colosales en este shooter espacial definitivo.','Pilota tu cazaestrellas por 10 galaxias distintas. Potencia tus armas, esquiva oleadas de enemigos y enfrenta jefes colo',0.00,NULL,'https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=1902&auto=format&fit=crop',NULL,999,0,0,1,'Arcade','STARBLAST INC.','RETRO STORE PUBLISHING',1991,4.6,88000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(6,7,'IRON FIST TOURNAMENT','iron-fist-tournament','Elige entre 8 luchadores únicos con movimientos especiales devastadores. Arcade, Versus y Story Mode incluidos en el mejor juego de peleas de los 90.','Elige entre 8 luchadores únicos con movimientos especiales devastadores. Arcade, Versus y Story Mode incluidos en el mej',0.00,NULL,'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',NULL,999,0,0,1,'Arcade','COMBAT BYTE','RETRO STORE PUBLISHING',1993,4.5,76000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(7,4,'NITRO CIRCUIT','nitro-circuit','Compite en 16 pistas de todo el mundo con 10 vehículos desbloqueables. Derrapa en cada curva y cruza la meta primero en este clásico del racing retro.','Compite en 16 pistas de todo el mundo con 10 vehículos desbloqueables. Derrapa en cada curva y cruza la meta primero en ',0.00,NULL,'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?q=80&w=2070&auto=format&fit=crop',NULL,999,0,0,1,'SNES','TURBO BYTE','RETRO STORE PUBLISHING',1995,4.4,65000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(8,5,'MIND SHIFT','mind-shift','100 niveles de puzzles con mecánicas que doblan la mente. Gravedad invertida, portales y bloques que cambian de forma. El juego de puzzles más original del 8-bit.','100 niveles de puzzles con mecánicas que doblan la mente. Gravedad invertida, portales y bloques que cambian de forma. E',0.00,NULL,'https://images.unsplash.com/photo-1553481199-077eb1f07974?q=80&w=2070&auto=format&fit=crop',NULL,999,0,1,1,'Game Boy','LOGICA GAMES','RETRO STORE PUBLISHING',1996,4.8,54000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(9,8,'COIN OP CLASSICS VOL.1','coin-op-classics-vol1','Colección de 5 juegos de arcade icónicos en un solo cartucho. Incluye Breakout, Snake, Frogger, Pac-Man clone y Space Invaders. Diversión sin fin garantizada.','Colección de 5 juegos de arcade icónicos en un solo cartucho. Incluye Breakout, Snake, Frogger, Pac-Man clone y Space In',0.00,NULL,'https://images.unsplash.com/photo-1533236897111-3e94666b2dda?q=80&w=1974&auto=format&fit=crop',NULL,999,0,0,1,'NES','NOSTALGIA BITS','RETRO STORE PUBLISHING',1989,4.3,42000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(10,1,'LOST ARK: PIXEL EDITION','lost-ark-pixel-edition','Archaeología de acción en vista isométrica. Descifra jeroglíficos, desactiva trampas y escapa de templos antes de que se derrumben. Indiana Jones en 8-bit.','Archaeología de acción en vista isométrica. Descifra jeroglíficos, desactiva trampas y escapa de templos antes de que se',0.00,NULL,'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071&auto=format&fit=crop',NULL,999,0,0,1,'NES','EXPLORE INC.','RETRO STORE PUBLISHING',1990,4.6,73000,'2026-02-19 17:39:37','2026-02-19 18:35:42'),
+(11,3,'CRYSTAL WARS: DAWN','crystal-wars-dawn','El universe se fragmenta y solo tú puedes reunir los 7 cristales del poder. RPG de mundo abierto con sistema de crafting, gremios y 40+ horas de contenido.','El universe se fragmenta y solo tú puedes reunir los 7 cristales del poder. RPG de mundo abierto con sistema de crafting',0.00,NULL,'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2114&auto=format&fit=crop',NULL,999,1,1,1,'SNES','OPAL INTERACTIVE','RETRO STORE PUBLISHING',1997,4.9,132000,'2026-02-19 17:39:37','2026-02-19 18:35:42');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -553,8 +554,8 @@ LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `sessions` VALUES
-('6tc4EHcLB38MoJrjomQ0XVpUIj7kqj0CmSPBaQpy',1,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36','YTo1OntzOjY6Il90b2tlbiI7czo0MDoieTBENXVOYU5KdEVSNHd2cjZnMkhLcDgyNGRlZFVtSWF4Ym1xUDREcSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDM6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9waW5nP2NiPTE3NzE1MjcxMDA3ODAiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjA6e31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO30=',1771527100),
-('FRoEhuKAfPNPY9QxQDyncvCuKgo1Evd2dnWN699j',1,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36','YTo0OntzOjY6Il90b2tlbiI7czo0MDoiN1ZCWnA0aUFGS0dyWmp3TzZFZXdEYnUyTkF6dkpJNFlDZFhqT0FBYiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6Mzg6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hZG1pbi9zdGF0aXN0aWNzIjtzOjU6InJvdXRlIjtzOjE2OiJhZG1pbi5zdGF0aXN0aWNzIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTt9',1771526983),
+('6tc4EHcLB38MoJrjomQ0XVpUIj7kqj0CmSPBaQpy',1,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36','YTo1OntzOjY6Il90b2tlbiI7czo0MDoieTBENXVOYU5KdEVSNHd2cjZnMkhLcDgyNGRlZFVtSWF4Ym1xUDREcSI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDM6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9waW5nP2NiPTE3NzE1Mjk3MDA4NDkiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6MzoidXJsIjthOjA6e31zOjUwOiJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI7aToxO30=',1771529700),
+('FRoEhuKAfPNPY9QxQDyncvCuKgo1Evd2dnWN699j',1,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36','YTo0OntzOjY6Il90b2tlbiI7czo0MDoiN1ZCWnA0aUFGS0dyWmp3TzZFZXdEYnUyTkF6dkpJNFlDZFhqT0FBYiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6NDM6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9waW5nP2NiPTE3NzE1Mjk3MjExNTAiO3M6NToicm91dGUiO047fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fXM6NTA6ImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjtpOjE7fQ==',1771529732),
 ('t13go2DIHI7jbT9cBlPzcQMS3BQJCR4I7o0rttU8',NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36','YTozOntzOjY6Il90b2tlbiI7czo0MDoiSElCdDhqQlBBSENUZTcwd1k4anl3d1lSZThtMW02Wkh6TEhXVk5MSiI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCI7czo1OiJyb3V0ZSI7czo0OiJob21lIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==',1771525871);
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -637,11 +638,11 @@ LOCK TABLES `users` WRITE;
 set autocommit=0;
 INSERT INTO `users` VALUES
 (1,'Admin','admin@avgames.com',1,1,9999,'active',NULL,NULL,NULL,'2026-02-19 17:32:23','$2y$12$DLrkSCbQ3fY9vBnBF/tXKuRd1Ofq2OD/Rr5uAflqrZcJGVT7Bpvme',NULL,NULL,NULL,NULL,'2026-02-19 17:32:23','2026-02-19 17:50:14'),
-(2,'Carlos Ramírez','carlos@demo.com',0,42,4200,'active',NULL,NULL,NULL,'2026-02-19 17:42:58','$2y$12$7tBuDa19wmCmPwWMLWmqIu6pe/TYWsDNaOhqdihFQCw8hkkmb69oC',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 17:42:59'),
-(3,'María López','maria@demo.com',0,35,3500,'active',NULL,NULL,NULL,'2026-02-19 17:42:58','$2y$12$KVwVOTvCiQ7FsB5SWSE/eunkSr8c5Ek0e34D3aGqDmGrrSvnx/5ES',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 17:42:59'),
-(4,'Álvaro Gómez','alvaro@demo.com',0,28,2800,'active',NULL,NULL,NULL,'2026-02-19 17:42:59','$2y$12$WZ/jCLUIvycmKJVEMF5x1uH/xW3hQm.mDWcbV8HkXVrjFuh8iybtC',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 17:42:59'),
-(5,'Sara Vidal','sara@demo.com',0,17,1700,'active',NULL,NULL,NULL,'2026-02-19 17:42:59','$2y$12$.iauRw0T2Dt1DYKU5Om9k.r6LEYpFfZqGHmOvQajOEAPyZsDeG59C',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 17:42:59'),
-(6,'Javier Torres','javier@demo.com',0,55,5500,'active',NULL,NULL,NULL,'2026-02-19 17:42:59','$2y$12$fosu/uL/0QOOG/cyQXtv7etMx3dyukp4RGnlMPxzVA.IcAq.ZauNi',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 17:42:59');
+(2,'Carlos Ramírez','carlos@demo.com',0,42,4200,'active',NULL,NULL,NULL,'2026-02-19 18:35:41','$2y$12$UCeTx66exCIDuHa/atJBauoishUAidJtX5Uc35mWWhYI7A/Ywu/tS',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 18:35:42'),
+(3,'María López','maria@demo.com',0,35,3500,'active',NULL,NULL,NULL,'2026-02-19 18:35:41','$2y$12$EGkdeiz3IxYf0kg4tlFCB.9sWHHFufNRWQsqd7.FQjPzrG4mlDTb6',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 18:35:42'),
+(4,'Álvaro Gómez','alvaro@demo.com',0,28,2800,'active',NULL,NULL,NULL,'2026-02-19 18:35:42','$2y$12$8lXz4rUxy35HOuuGZcJ4HutfTRtvm5Wqv4mpzm78.M1r4qNCGL8gC',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 18:35:42'),
+(5,'Sara Vidal','sara@demo.com',0,17,1700,'active',NULL,NULL,NULL,'2026-02-19 18:35:42','$2y$12$SBrbtV6w4h9zRl5NXjvPo.KX4v.HWL034kI/eqVE89F3ryueTKXI6',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 18:35:42'),
+(6,'Javier Torres','javier@demo.com',0,55,5500,'active',NULL,NULL,NULL,'2026-02-19 18:35:42','$2y$12$b/pq3WP0BEj4jSSi1QtQ7uQIcVrHX6An.lPJZB11Pld/Mv4v9gxta',NULL,NULL,NULL,NULL,'2026-02-19 17:37:25','2026-02-19 18:35:42');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -655,4 +656,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-02-19 19:51:44
+-- Dump completed on 2026-02-19 20:35:42
