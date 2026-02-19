@@ -63,6 +63,14 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
         return currentPath.startsWith(path);
     };
 
+    const [search, setSearch] = useState('');
+
+    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            router.get('/library', { search });
+        }
+    };
+
     return (
         <div className="dark bg-[#0a050f] min-h-screen flex overflow-hidden">
             {/* Scanline effect overlay */}
@@ -86,11 +94,10 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
                         <Link
                             key={link.name}
                             href={link.href}
-                            className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${
-                                isActive(link.href)
+                            className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-all ${isActive(link.href)
                                     ? 'bg-[#7f13ec]/10 text-[#7f13ec] border border-[#7f13ec]/30'
                                     : 'hover:bg-white/5 text-gray-400 hover:text-white group border border-transparent'
-                            }`}
+                                }`}
                         >
                             <span className={`material-symbols-outlined ${!isActive(link.href) && 'group-hover:text-[#7f13ec]'}`}>
                                 {link.icon}
@@ -106,7 +113,7 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
                         <div className="p-4 rounded-lg bg-gradient-to-br from-[#7f13ec]/20 to-transparent border border-[#7f13ec]/10">
                             <p className="text-[10px] font-pixel text-[#7f13ec] mb-2">LEVEL {auth.user.level || 1}</p>
                             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mb-3">
-                                <div 
+                                <div
                                     className="h-full bg-[#7f13ec] shadow-[0_0_10px_#7f13ec] transition-all"
                                     style={{ width: `${((auth.user.downloads_count || 0) % 5) * 20}%` }}
                                 ></div>
@@ -133,6 +140,9 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
                             <input
                                 type="text"
                                 placeholder="Search Database..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                onKeyDown={handleSearch}
                                 className="w-full bg-[#160b22]/80 border border-[#7f13ec]/30 rounded px-12 py-2.5 font-pixel text-[10px] text-[#7f13ec] focus:ring-1 focus:ring-[#7f13ec] focus:border-[#7f13ec] placeholder:text-[#7f13ec]/30 outline-none transition-all"
                             />
                         </div>
@@ -168,11 +178,11 @@ export default function StoreLayout({ children }: StoreLayoutProps) {
                                 {/* Dropdown Menu */}
                                 {userMenuOpen && (
                                     <>
-                                        <div 
-                                            className="fixed inset-0 z-40" 
+                                        <div
+                                            className="fixed inset-0 z-40"
                                             onClick={() => setUserMenuOpen(false)}
                                         />
-                                        
+
                                         <div className="absolute right-0 mt-2 w-56 z-50">
                                             <div className="bg-[#0d0715] border border-[#7f13ec]/30 rounded-lg shadow-2xl overflow-hidden backdrop-blur-xl">
                                                 {/* User Info */}
