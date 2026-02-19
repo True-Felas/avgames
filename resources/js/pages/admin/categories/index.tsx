@@ -95,7 +95,7 @@ export default function CategoriesIndex({ categories }: CategoriesIndexProps) {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* Paginación */}
         {categories.last_page > 1 && (
           <div className="flex items-center justify-center gap-2">
             {categories.links.map((link, index) => (

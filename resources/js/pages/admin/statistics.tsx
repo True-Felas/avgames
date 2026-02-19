@@ -69,7 +69,7 @@ export default function Statistics({
     userGrowth,
     hourlyActivity,
 }: StatisticsProps) {
-    // Calculate totals
+    // Calculos totales
     const topProductsTotal = topProducts.reduce((acc, p) => acc + p.downloads, 0);
     const avgDownloadsPerProduct = topProducts.length > 0 ? Math.round(topProductsTotal / topProducts.length) : 0;
 
@@ -131,7 +131,7 @@ export default function Statistics({
                     </div>
                 </div>
 
-                {/* Simple Chart Test */}
+                {/* Test */}
                 <div className="rounded-xl bg-[#160b22]/80 border border-white/5 p-6">
                     <h3 className="font-pixel text-[10px] text-white mb-6">DOWNLOADS OVER TIME</h3>
                     <div className="h-80">

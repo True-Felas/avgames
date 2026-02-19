@@ -36,7 +36,7 @@ export default function Dashboard(props: DashboardProps) {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Total Users */}
+                    {/* Usuarios Totales */}
                     <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -51,7 +51,7 @@ export default function Dashboard(props: DashboardProps) {
                         </div>
                     </div>
 
-                    {/* Total Products */}
+                    {/* Productos Totales */}
                     <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -66,7 +66,7 @@ export default function Dashboard(props: DashboardProps) {
                         </div>
                     </div>
 
-                    {/* Total Downloads */}
+                    {/* Descargas Totales */}
                     <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -81,7 +81,7 @@ export default function Dashboard(props: DashboardProps) {
                         </div>
                     </div>
 
-                    {/* Total Orders */}
+                    {/* Ventas Totales */}
                     <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-6">
                         <div className="flex items-center justify-between">
                             <div>
@@ -97,7 +97,7 @@ export default function Dashboard(props: DashboardProps) {
                     </div>
                 </div>
 
-                {/* User Status */}
+                {/* Estatus del usuario */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-6">
                         <h3 className="text-lg font-semibold text-white mb-4">Estado de Usuarios</h3>
