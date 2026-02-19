@@ -33,7 +33,7 @@ class StatisticsController extends Controller
             ->orderByDesc('downloads')
             ->limit(20)
             ->get()
-            ->map(fn ($product) => [
+            ->map(fn($product) => [
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
@@ -51,30 +51,34 @@ class StatisticsController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'date' => Carbon::parse($item->date)->format('M d'),
                 'downloads' => $item->count,
             ]);
 
         // Usuarios con más descargas
-        $topDownloaders = User::query()
-            ->leftJoin('user_downloads', 'users.id', '=', 'user_downloads.user_id')
-            ->select('users.id', 'users.name', 'users.email', 'users.status')
-            ->selectRaw('COUNT(user_downloads.id) as downloads_count')
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.status')
+        $topDownloadCounts = DB::table('user_downloads')
+            ->select('user_id', DB::raw('COUNT(*) as downloads_count'))
+            ->groupBy('user_id')
             ->orderByDesc('downloads_count')
             ->limit(20)
             ->get()
-            ->map(function ($user) {
+            ->keyBy('user_id');
+
+        $topDownloaders = User::whereIn('id', $topDownloadCounts->keys())
+            ->get()
+            ->map(function ($user) use ($topDownloadCounts) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'level' => $user->getCurrentLevel(),
                     'status' => $user->status,
-                    'downloads_count' => $user->downloads_count,
+                    'downloads_count' => $topDownloadCounts[$user->id]->downloads_count ?? 0,
                 ];
-            });
+            })
+            ->sortByDesc('downloads_count')
+            ->values();
 
         // Descargas agrupadas por categoría
         $downloadsByCategory = Category::select('categories.id', 'categories.name', 'categories.color')
@@ -92,7 +96,7 @@ class StatisticsController extends Controller
             ->groupBy('platform')
             ->orderByDesc('total_downloads')
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'platform' => $item->platform,
                 'downloads' => (int) $item->total_downloads,
             ]);
@@ -104,20 +108,20 @@ class StatisticsController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'date' => Carbon::parse($item->date)->format('M d'),
                 'users' => $item->count,
             ]);
 
-        // Actividad por hora (últimos 7 días)
+        // Actividad por hora (últimos 7 días) - MySQL
         $hourlyActivity = DB::table('user_downloads')
-            ->selectRaw("CAST(strftime('%H', downloaded_at) AS INTEGER) as hour")
+            ->selectRaw('HOUR(downloaded_at) as hour')
             ->selectRaw('COUNT(*) as count')
             ->where('downloaded_at', '>=', Carbon::now()->subDays(7))
             ->groupBy('hour')
             ->orderBy('hour')
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'hour' => sprintf('%02d:00', $item->hour),
                 'downloads' => $item->count,
             ]);

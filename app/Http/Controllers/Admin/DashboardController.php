@@ -43,7 +43,7 @@ class DashboardController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'date' => Carbon::parse($item->date)->format('M d'),
                 'downloads' => $item->count,
             ]);
@@ -54,7 +54,7 @@ class DashboardController extends Controller
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'date' => Carbon::parse($item->date)->format('M d'),
                 'users' => $item->count,
             ]);
@@ -65,7 +65,7 @@ class DashboardController extends Controller
             ->orderByDesc('downloads')
             ->limit(10)
             ->get()
-            ->map(fn ($product) => [
+            ->map(fn($product) => [
                 'id' => $product->id,
                 'name' => $product->name,
                 'image_url' => $product->image_url,
@@ -74,27 +74,26 @@ class DashboardController extends Controller
             ]);
 
         // Top usuarios por descargas
-        $topUsers = User::select(
-            'users.id',
-            'users.name',
-            'users.email',
-            'users.level',
-            'users.status'
-        )
-            ->leftJoin('user_downloads', 'users.id', '=', 'user_downloads.user_id')
-            ->selectRaw('COUNT(user_downloads.id) as downloads_count')
-            ->groupBy('users.id', 'users.name', 'users.email', 'users.level', 'users.status')
+        $topDownloadCounts = DB::table('user_downloads')
+            ->select('user_id', DB::raw('COUNT(*) as downloads_count'))
+            ->groupBy('user_id')
             ->orderByDesc('downloads_count')
             ->limit(10)
             ->get()
-            ->map(fn ($user) => [
+            ->keyBy('user_id');
+
+        $topUsers = User::whereIn('id', $topDownloadCounts->keys())
+            ->get()
+            ->map(fn($user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'level' => $user->getCurrentLevel(),
-                'downloads_count' => $user->downloads_count,
+                'downloads_count' => $topDownloadCounts[$user->id]->downloads_count ?? 0,
                 'status' => $user->status,
-            ]);
+            ])
+            ->sortByDesc('downloads_count')
+            ->values();
 
         // Descargas por categoría
         $downloadsByCategory = Category::select('categories.name')
@@ -103,7 +102,7 @@ class DashboardController extends Controller
             ->groupBy('categories.id', 'categories.name')
             ->orderByDesc('total_downloads')
             ->get()
-            ->map(fn ($cat) => [
+            ->map(fn($cat) => [
                 'name' => $cat->name,
                 'downloads' => (int) $cat->total_downloads,
             ]);
@@ -116,7 +115,7 @@ class DashboardController extends Controller
             ->orderByDesc('user_downloads.downloaded_at')
             ->limit(10)
             ->get()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'user_name' => $item->user_name,
                 'product_name' => $item->product_name,
                 'downloaded_at' => Carbon::parse($item->downloaded_at)->diffForHumans(),
