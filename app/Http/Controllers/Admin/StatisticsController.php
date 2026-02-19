@@ -12,21 +12,28 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* StatisticsController
+ *
+ * Controlador del panel de estadísticas del admin.
+ * Aquí se preparan los datos para las gráficas:
+ * productos más descargados, usuarios activos,
+ * descargas por fecha, por categoría, etc.
+ */
+
 class StatisticsController extends Controller
 {
-    /**
-     * Display advanced statistics view.
-     */
+    /* Muestra la vista de estadísticas con todos los datos agregados. */
+
     public function index(Request $request): Response
     {
-        $period = $request->get('period', '30'); // days
+        $period = $request->get('period', '30'); // días
 
-        // Top 20 downloaded products
+        // Top 20 productos más descargados
         $topProducts = Product::with('category')
             ->orderByDesc('downloads')
             ->limit(20)
             ->get()
-            ->map(fn($product) => [
+            ->map(fn ($product) => [
                 'id' => $product->id,
                 'name' => $product->name,
                 'slug' => $product->slug,
@@ -37,19 +44,19 @@ class StatisticsController extends Controller
                 'is_free' => $product->is_free,
             ]);
 
-        // Downloads over time
+        // Descargas por día en el periodo seleccionado
         $downloadsOverTime = DB::table('user_downloads')
             ->select(DB::raw('DATE(downloaded_at) as date'), DB::raw('COUNT(*) as count'))
             ->where('downloaded_at', '>=', Carbon::now()->subDays((int) $period))
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'date' => Carbon::parse($item->date)->format('M d'),
                 'downloads' => $item->count,
             ]);
 
-        // Users who downloaded the most
+        // Usuarios con más descargas
         $topDownloaders = User::query()
             ->leftJoin('user_downloads', 'users.id', '=', 'user_downloads.user_id')
             ->select('users.id', 'users.name', 'users.email', 'users.status')
@@ -58,7 +65,7 @@ class StatisticsController extends Controller
             ->orderByDesc('downloads_count')
             ->limit(20)
             ->get()
-            ->map(function($user) {
+            ->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -69,7 +76,7 @@ class StatisticsController extends Controller
                 ];
             });
 
-        // Downloads by category
+        // Descargas agrupadas por categoría
         $downloadsByCategory = Category::select('categories.id', 'categories.name', 'categories.color')
             ->leftJoin('products', 'categories.id', '=', 'products.category_id')
             ->selectRaw('COALESCE(SUM(products.downloads), 0) as total_downloads')
@@ -78,31 +85,31 @@ class StatisticsController extends Controller
             ->orderByDesc('total_downloads')
             ->get();
 
-        // Platform distribution
+        // Descargas por plataforma
         $platformDistribution = Product::select('platform')
             ->selectRaw('SUM(downloads) as total_downloads')
             ->whereNotNull('platform')
             ->groupBy('platform')
             ->orderByDesc('total_downloads')
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'platform' => $item->platform,
                 'downloads' => (int) $item->total_downloads,
             ]);
 
-        // User growth
+        // Crecimiento de usuarios
         $userGrowth = DB::table('users')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
             ->where('created_at', '>=', Carbon::now()->subDays((int) $period))
             ->groupBy('date')
             ->orderBy('date')
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'date' => Carbon::parse($item->date)->format('M d'),
                 'users' => $item->count,
             ]);
 
-        // Hourly activity (downloads per hour) - SQLite compatible
+        // Actividad por hora (últimos 7 días)
         $hourlyActivity = DB::table('user_downloads')
             ->selectRaw("CAST(strftime('%H', downloaded_at) AS INTEGER) as hour")
             ->selectRaw('COUNT(*) as count')
@@ -110,12 +117,12 @@ class StatisticsController extends Controller
             ->groupBy('hour')
             ->orderBy('hour')
             ->get()
-            ->map(fn($item) => [
+            ->map(fn ($item) => [
                 'hour' => sprintf('%02d:00', $item->hour),
                 'downloads' => $item->count,
             ]);
 
-        // Total downloads (sum of all products)
+        // Total global de descargas
         $totalDownloads = Product::sum('downloads');
 
         return Inertia::render('admin/statistics', [

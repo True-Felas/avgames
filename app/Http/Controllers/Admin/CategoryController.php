@@ -10,11 +10,15 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* CategoryController (Admin)
+ *
+ * CRUD básico de categorías desde el panel de administración.
+ */
+
 class CategoryController extends Controller
 {
-    /**
-     * Display a listing of categories.
-     */
+    /* Listado paginado de categorías (ordenadas) */
+
     public function index(): Response
     {
         $categories = Category::withCount('products')
@@ -26,17 +30,15 @@ class CategoryController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new category.
-     */
+    /* Formulario de creación */
+
     public function create(): Response
     {
         return Inertia::render('admin/categories/create');
     }
 
-    /**
-     * Store a newly created category.
-     */
+    /* Guardar una categoría nueva */
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -48,6 +50,7 @@ class CategoryController extends Controller
             'is_active' => 'boolean',
         ]);
 
+        // Slug automático a partir del nombre
         $validated['slug'] = Str::slug($validated['name']);
 
         Category::create($validated);
@@ -56,9 +59,8 @@ class CategoryController extends Controller
             ->with('success', 'Categoría creada correctamente');
     }
 
-    /**
-     * Show the form for editing a category.
-     */
+    /* Formulario de edición */
+
     public function edit(Category $category): Response
     {
         return Inertia::render('admin/categories/edit', [
@@ -66,9 +68,8 @@ class CategoryController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified category.
-     */
+    /* Actualizar una categoría existente */
+
     public function update(Request $request, Category $category): RedirectResponse
     {
         $validated = $request->validate([
@@ -88,9 +89,8 @@ class CategoryController extends Controller
             ->with('success', 'Categoría actualizada correctamente');
     }
 
-    /**
-     * Remove the specified category.
-     */
+    /* Eliminar una categoría (solo si no tiene productos) */
+
     public function destroy(Category $category): RedirectResponse
     {
         if ($category->products()->count() > 0) {

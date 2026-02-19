@@ -7,38 +7,52 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/* Modelo Cart
+ *
+ * Representa el carrito de compra.
+ * Puede estar asociado a un usuario logueado (user_id) o a una sesión (session_id).
+ * Incluye helpers para calcular total, contar items y gestionar productos dentro del carrito.
+ */
+
 class Cart extends Model
 {
     use HasFactory;
+
+    /* Campos asignables al crear/actualizar el carrito. */
 
     protected $fillable = [
         'user_id',
         'session_id',
     ];
 
+    /* Atributos calculados que se añaden al JSON automáticamente. */
+
     protected $appends = ['total', 'items_count'];
 
-    /**
-     * Get the user that owns the cart.
-     * Relación belongsTo: Un carrito pertenece a un usuario
-     */
+    // ==========================================================
+    // Relaciones
+    // ==========================================================
+
+    /* Relación: un carrito pertenece a un usuario. */
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the items in the cart.
-     * Relación hasMany: Un carrito tiene muchos items
-     */
+    /* Relación: un carrito tiene muchos items (líneas de carrito). */
+
     public function items(): HasMany
     {
         return $this->hasMany(CartItem::class);
     }
 
-    /**
-     * Get cart total.
-     */
+    // ==========================================================
+    // Accesores
+    // ==========================================================
+
+    /* Total del carrito (suma de quantity * price). */
+
     public function getTotalAttribute(): float
     {
         return $this->items->sum(function ($item) {
@@ -46,17 +60,20 @@ class Cart extends Model
         });
     }
 
-    /**
-     * Get items count.
-     */
+    /* Cantidad total de unidades en el carrito. */
+
     public function getItemsCountAttribute(): int
     {
         return $this->items->sum('quantity');
     }
 
-    /**
-     * Add a product to the cart.
-     */
+    // ==========================================================
+    // Operaciones sobre el carrito
+    // ==========================================================
+
+    /* Añade un producto al carrito.
+     * Si ya existe, incrementa la cantidad. */
+
     public function addProduct(Product $product, int $quantity = 1): CartItem
     {
         $existingItem = $this->items()->where('product_id', $product->id)->first();
@@ -73,17 +90,16 @@ class Cart extends Model
         ]);
     }
 
-    /**
-     * Remove a product from the cart.
-     */
+    /* Elimina un producto del carrito. */
+
     public function removeProduct(Product $product): bool
     {
         return $this->items()->where('product_id', $product->id)->delete() > 0;
     }
 
-    /**
-     * Update product quantity in cart.
-     */
+    /* Actualiza la cantidad de un producto en el carrito.
+     * Si quantity <= 0, elimina el item directamente. */
+
     public function updateQuantity(Product $product, int $quantity): ?CartItem
     {
         $item = $this->items()->where('product_id', $product->id)->first();
@@ -101,17 +117,20 @@ class Cart extends Model
         return $item->fresh();
     }
 
-    /**
-     * Clear all items from cart.
-     */
+    /* Vacía el carrito completo. */
+
     public function clear(): void
     {
         $this->items()->delete();
     }
 
-    /**
-     * Get or create cart for user/session.
-     */
+    // ==========================================================
+    // Helpers (usuario / sesión)
+    // ==========================================================
+
+    /* Obtiene (o crea) el carrito asociado a un usuario o a una sesión.
+     * Es obligatorio pasar uno de los dos. */
+
     public static function getCart(?int $userId = null, ?string $sessionId = null): self
     {
         if ($userId) {
@@ -125,9 +144,9 @@ class Cart extends Model
         throw new \InvalidArgumentException('Either user_id or session_id must be provided');
     }
 
-    /**
-     * Merge guest cart into user cart.
-     */
+    /* Fusiona un carrito de invitado dentro del carrito del usuario.
+     * Si un producto ya existe, se suman cantidades. */
+
     public function mergeWith(Cart $guestCart): void
     {
         foreach ($guestCart->items as $item) {

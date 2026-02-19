@@ -11,11 +11,20 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* CartController
+ *
+ * Controla el carrito de compra del usuario.
+ * - Si el usuario está logueado: el carrito va asociado a su user_id
+ * - Si es visitante: el carrito se asocia a la session_id
+ *
+ * Incluye endpoints para:
+ * ver carrito, añadir, actualizar cantidades, eliminar, vaciar y obtener contador (badge). */
+
 class CartController extends Controller
 {
-    /**
-     * Get or create cart for the current user/session.
-     */
+    /* Devuelve el carrito actual (usuario o visitante).
+     * Aquí centralizamos la lógica para no repetirla en cada método. */
+
     private function getCart(Request $request): Cart
     {
         if (Auth::check()) {
@@ -26,9 +35,12 @@ class CartController extends Controller
         return Cart::getCart(sessionId: $sessionId);
     }
 
-    /**
-     * Display the shopping cart.
-     */
+    /* ==========================================================
+     * Vista del carrito
+     * ========================================================== */
+
+    /* Muestra el carrito con sus items (y relaciones necesarias). */
+
     public function index(Request $request): Response
     {
         $cart = $this->getCart($request);
@@ -40,9 +52,14 @@ class CartController extends Controller
         ]);
     }
 
-    /**
-     * Add a product to the cart.
-     */
+    /* ==========================================================
+     * Operaciones sobre items
+     * ========================================================== */
+
+    /* Añade un producto al carrito.
+     * Nota: antes comprobamos que el producto tenga al menos 1 archivo activo,
+     * para no permitir “compras” que luego no se podrían descargar. */
+
     public function add(Request $request, Product $product): RedirectResponse|JsonResponse
     {
         $request->validate([
@@ -76,9 +93,9 @@ class CartController extends Controller
         return back()->with('success', "{$product->name} añadido al carrito");
     }
 
-    /**
-     * Update quantity of a product in the cart.
-     */
+    /* Actualiza la cantidad de un producto.
+     * Si quantity llega a 0, el modelo se encarga de eliminar el item. */
+
     public function update(Request $request, Product $product): RedirectResponse|JsonResponse
     {
         $request->validate([
@@ -100,9 +117,8 @@ class CartController extends Controller
         return back()->with('success', 'Carrito actualizado');
     }
 
-    /**
-     * Remove a product from the cart.
-     */
+    /* Elimina un producto del carrito (borra el item asociado). */
+
     public function remove(Request $request, Product $product): RedirectResponse|JsonResponse
     {
         $cart = $this->getCart($request);
@@ -119,9 +135,8 @@ class CartController extends Controller
         return back()->with('success', "{$product->name} eliminado del carrito");
     }
 
-    /**
-     * Clear the entire cart.
-     */
+    /* Vacía el carrito completo. */
+
     public function clear(Request $request): RedirectResponse|JsonResponse
     {
         $cart = $this->getCart($request);
@@ -137,9 +152,12 @@ class CartController extends Controller
         return back()->with('success', 'Carrito vaciado');
     }
 
-    /**
-     * Get cart count for navbar badge.
-     */
+    /* ==========================================================
+     * Utilidad (badge / navbar)
+     * ========================================================== */
+
+    /* Devuelve contador y total del carrito para pintar el badge en la UI. */
+
     public function count(Request $request): JsonResponse
     {
         $cart = $this->getCart($request);

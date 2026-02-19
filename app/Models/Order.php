@@ -7,9 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/* Modelo Order
+ *
+ * Representa un pedido generado desde el carrito.
+ * Guarda importes (subtotal, IVA, total), estado del pedido y del pago,
+ * y contiene los items (OrderItem) con el detalle de productos comprados.
+ *
+ * Nota: aquí se centraliza la creación del pedido desde el carrito y el marcado
+ * de estados (completed/cancelled) para que el controlador no tenga que “inventar”
+ * la lógica cada vez.
+ */
+
 class Order extends Model
 {
     use HasFactory;
+
+    /* Campos asignables al crear/editar pedidos. */
 
     protected $fillable = [
         'user_id',
@@ -25,6 +38,8 @@ class Order extends Model
         'billing_address',
     ];
 
+    /* Casts para tratar importes y billing_address correctamente. */
+
     protected $casts = [
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
@@ -33,27 +48,30 @@ class Order extends Model
         'billing_address' => 'array',
     ];
 
-    /**
-     * Get the user that owns the order.
-     * Relación belongsTo: Un pedido pertenece a un usuario
-     */
+    // ==========================================================
+    // Relaciones
+    // ==========================================================
+
+    /* Relación: un pedido pertenece a un usuario. */
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the items in the order.
-     * Relación hasMany: Un pedido tiene muchos items
-     */
+    /* Relación: un pedido tiene muchos items (líneas de pedido). */
+
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * Generate unique order number.
-     */
+    // ==========================================================
+    // Creación / Generación
+    // ==========================================================
+
+    /* Genera un número de pedido único y legible. */
+
     public static function generateOrderNumber(): string
     {
         $prefix = 'ORD';
@@ -63,9 +81,11 @@ class Order extends Model
         return "{$prefix}-{$timestamp}-{$random}";
     }
 
-    /**
-     * Create order from cart.
-     */
+    /* Crea un pedido a partir de un carrito:
+     * - Calcula subtotal + IVA
+     * - Crea el Order + sus OrderItems
+     * - Limpia el carrito al finalizar */
+
     public static function createFromCart(Cart $cart, array $billingData = []): self
     {
         $subtotal = $cart->total;
@@ -93,19 +113,22 @@ class Order extends Model
                 'total' => $item->subtotal,
             ]);
 
-            // Increment download count for each product
+            // Incrementamos el contador de descargas del producto
             $item->product->incrementDownloads();
         }
 
-        // Clear the cart after order
+        // Vaciar carrito tras crear el pedido
         $cart->clear();
 
         return $order;
     }
 
-    /**
-     * Mark order as completed.
-     */
+    // ==========================================================
+    // Estados del pedido
+    // ==========================================================
+
+    /* Marca el pedido como completado (pago confirmado). */
+
     public function markAsCompleted(): void
     {
         $this->update([
@@ -114,9 +137,8 @@ class Order extends Model
         ]);
     }
 
-    /**
-     * Mark order as cancelled.
-     */
+    /* Marca el pedido como cancelado. */
+
     public function markAsCancelled(): void
     {
         $this->update([
@@ -125,17 +147,19 @@ class Order extends Model
         ]);
     }
 
-    /**
-     * Scope for user orders.
-     */
+    // ==========================================================
+    // Scopes (filtros reutilizables)
+    // ==========================================================
+
+    /* Pedidos de un usuario concreto. */
+
     public function scopeForUser($query, $userId)
     {
         return $query->where('user_id', $userId);
     }
 
-    /**
-     * Scope for orders by status.
-     */
+    /* Pedidos filtrados por estado (pending/completed/cancelled...). */
+
     public function scopeByStatus($query, $status)
     {
         return $query->where('status', $status);

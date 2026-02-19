@@ -6,9 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/* Modelo Category
+ *
+ * Representa una categoría dentro del catálogo (por ejemplo: Arcade, RPG, Acción).
+ * Sirve para agrupar productos y facilitar el filtrado y la navegación.
+ */
+
 class Category extends Model
 {
     use HasFactory;
+
+    /* Campos editables desde panel admin o seeders. */
 
     protected $fillable = [
         'name',
@@ -20,47 +28,55 @@ class Category extends Model
         'sort_order',
     ];
 
+    /* Casts para asegurar tipos correctos. */
+
     protected $casts = [
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
 
-    /**
-     * Get the products for the category.
-     * Relación hasMany: Una categoría tiene muchos productos
-     */
+    // ==========================================================
+    // Relaciones
+    // ==========================================================
+
+    /* Relación: una categoría tiene muchos productos. */
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
-    /**
-     * Get only active products for this category.
-     */
+    /* Solo productos activos de esta categoría. */
+
     public function activeProducts(): HasMany
     {
         return $this->hasMany(Product::class)->where('is_active', true);
     }
 
-    /**
-     * Scope for active categories.
-     */
+    // ==========================================================
+    // Scopes
+    // ==========================================================
+
+    /* Solo categorías activas. */
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    /**
-     * Scope for ordered categories.
-     */
+    /* Ordenadas por el campo sort_order (útil para menú). */
+
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order');
     }
 
-    /**
-     * Get product count for this category.
-     */
+    // ==========================================================
+    // Accesores
+    // ==========================================================
+
+    /* Número de productos activos asociados a la categoría. */
+
     public function getProductCountAttribute(): int
     {
         return $this->products()->where('is_active', true)->count();

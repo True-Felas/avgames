@@ -11,6 +11,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
+/* Modelo User
+ *
+ * Representa al usuario autenticado de la plataforma.
+ * Incluye relaciones (carrito, pedidos, descargas) y helpers de estado:
+ * - admin
+ * - baneado / suspendido
+ * - cálculo de nivel y experiencia
+ *
+ * Nota: usa Fortify para 2FA y verificación.
+ */
+
 /**
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
  * @property-read \App\Models\Cart|null $cart
@@ -21,28 +32,27 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    /**
-     * Get the cart for the user.
-     * Relación hasOne: Un usuario tiene un carrito
-     */
+    // ==========================================================
+    // Relaciones
+    // ==========================================================
+
+    /* Relación: un usuario tiene un carrito (hasOne). */
+
     public function cart(): HasOne
     {
         return $this->hasOne(Cart::class);
     }
 
-    /**
-     * Get the orders for the user.
-     * Relación hasMany: Un usuario tiene muchos pedidos
-     */
+    /* Relación: un usuario tiene muchos pedidos (hasMany). */
+
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    /**
-     * Get the downloaded products for the user.
-     * Relación belongsToMany: Un usuario puede descargar muchos productos
-     */
+    /* Relación: productos descargados por el usuario (belongsToMany).
+     * Tabla pivote: user_downloads (con fecha de descarga e IP). */
+
     public function downloads(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'user_downloads')
@@ -50,40 +60,45 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    /**
-     * Get or create cart for user.
-     */
+    // ==========================================================
+    // Carrito
+    // ==========================================================
+
+    /* Devuelve el carrito del usuario o lo crea si no existe. */
+
     public function getOrCreateCart(): Cart
     {
         return $this->cart ?? Cart::create(['user_id' => $this->id]);
     }
 
-    /**
-     * Check if user is admin.
-     */
+    // ==========================================================
+    // Roles / Estado
+    // ==========================================================
+
+    /* Comprueba si el usuario es admin. */
+
     public function isAdmin(): bool
     {
         return $this->is_admin === true;
     }
 
-    /**
-     * Check if user is banned.
-     */
+    /* Comprueba si el usuario está baneado. */
+
     public function isBanned(): bool
     {
         return $this->status === 'banned';
     }
 
-    /**
-     * Check if user is suspended.
-     */
+    /* Comprueba si el usuario está suspendido.
+     * Si la suspensión ha caducado, se reactiva automáticamente. */
+
     public function isSuspended(): bool
     {
         if ($this->status !== 'suspended') {
             return false;
         }
 
-        // Check if suspension has expired
+        // Si la suspensión ya pasó, volvemos a estado activo
         if ($this->suspended_until && now()->gt($this->suspended_until)) {
             $this->update(['status' => 'active', 'suspended_until' => null]);
             return false;
@@ -92,17 +107,15 @@ class User extends Authenticatable
         return true;
     }
 
-    /**
-     * Check if user can access the platform.
-     */
+    /* Indica si el usuario puede acceder a la plataforma. */
+
     public function canAccess(): bool
     {
         return !$this->isBanned() && !$this->isSuspended();
     }
 
-    /**
-     * Ban the user.
-     */
+    /* Banea al usuario (opcional: motivo). */
+
     public function ban(?string $reason = null): void
     {
         $this->update([
@@ -112,9 +125,8 @@ class User extends Authenticatable
         ]);
     }
 
-    /**
-     * Suspend the user temporarily.
-     */
+    /* Suspende al usuario hasta una fecha concreta (opcional: motivo). */
+
     public function suspend(\DateTime $until, ?string $reason = null): void
     {
         $this->update([
@@ -124,9 +136,8 @@ class User extends Authenticatable
         ]);
     }
 
-    /**
-     * Unban/Unsuspend the user.
-     */
+    /* Reactiva al usuario (quita baneo o suspensión). */
+
     public function activate(): void
     {
         $this->update([
@@ -136,14 +147,17 @@ class User extends Authenticatable
         ]);
     }
 
-    /**
-     * Add experience and level up if needed.
-     */
+    // ==========================================================
+    // Nivel / Experiencia
+    // ==========================================================
+
+    /* Suma experiencia y sube de nivel si toca.
+     * Regla actual: +1 nivel cada 100 XP. */
+
     public function addExperience(int $amount): void
     {
         $this->experience += $amount;
 
-        // Level up every 100 XP
         $newLevel = (int) floor($this->experience / 100) + 1;
         if ($newLevel > $this->level) {
             $this->level = $newLevel;
@@ -152,40 +166,35 @@ class User extends Authenticatable
         $this->save();
     }
 
-    /**
-     * Calculate level based on number of downloads.
-     * Level = (downloads / 5) + 1
-     * 0-4 downloads: Level 1
-     * 5-9 downloads: Level 2
-     * 10-14 downloads: Level 3, etc.
-     */
+    /* Calcula nivel según número de descargas:
+     * Nivel = floor(descargas / 5) + 1 */
+
     public function calculateLevelFromDownloads(): int
     {
         $downloadCount = $this->downloads()->count();
         return (int) floor($downloadCount / 5) + 1;
     }
 
-    /**
-     * Get the current level based on downloads.
-     */
+    /* Devuelve el nivel actual (basado en descargas). */
+
     public function getCurrentLevel(): int
     {
         return $this->calculateLevelFromDownloads();
     }
 
-    /**
-     * Get download count for the user.
-     */
+    /* Devuelve el número total de descargas del usuario. */
+
     public function getDownloadCount(): int
     {
         return $this->downloads()->count();
     }
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    // ==========================================================
+    // Atributos del modelo
+    // ==========================================================
+
+    /* Campos asignables por mass assignment. */
+
     protected $fillable = [
         'name',
         'email',
@@ -199,11 +208,8 @@ class User extends Authenticatable
         'avatar',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
+    /* Campos ocultos al serializar (seguridad). */
+
     protected $hidden = [
         'password',
         'two_factor_secret',
@@ -211,28 +217,21 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
+    /* Atributos "virtuales" añadidos al JSON. */
+
     protected $appends = [
         'downloads_count',
     ];
 
-    /**
-     * Get the download count attribute.
-     */
+    /* Accesor: número de descargas del usuario. */
+
     public function getDownloadsCountAttribute(): int
     {
         return $this->downloads()->count();
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    /* Casts del modelo (fechas, booleanos, password hashed, etc.). */
+
     protected function casts(): array
     {
         return [

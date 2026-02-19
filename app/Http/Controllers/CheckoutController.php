@@ -10,11 +10,29 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* CheckoutController
+ *
+ * Controla el flujo de compra desde el carrito hasta la descarga:
+ * 1) Mostrar checkout (resumen, IVA, total y validaciones básicas)
+ * 2) Procesar checkout creando el pedido (Order) a partir del carrito
+ * 3) Si es de pago: redirigir a pantalla de pago simulado
+ * 4) Si es gratis: completar automáticamente y mandar a descargas
+ *
+ * Nota: aquí también se hace “doble control” de que cada producto tenga
+ * al menos un archivo activo asociado, para evitar pedidos imposibles. */
+
 class CheckoutController extends Controller
 {
-    /**
-     * Display the checkout page.
-     */
+    /* ==========================================================
+     * Checkout (pantalla)
+     * ========================================================== */
+
+    /* Muestra la pantalla de checkout.
+     * - Carga carrito e items
+     * - Si está vacío, vuelve al carrito
+     * - Valida que todos los productos tengan archivo activo
+     * - Calcula subtotal/IVA/total (si es free, todo a 0) */
+
     public function index(Request $request): Response|RedirectResponse
     {
         $cart = Cart::getCart(userId: Auth::id());
@@ -45,9 +63,18 @@ class CheckoutController extends Controller
         ]);
     }
 
-    /**
-     * Process the checkout and create an order.
-     */
+    /* ==========================================================
+     * Checkout (proceso)
+     * ========================================================== */
+
+    /* Procesa el checkout y crea el pedido.
+     * - Revalida carrito + archivos (por seguridad)
+     * - Si es gratis: solo acepta términos
+     * - Si es de pago: valida billing + método
+     * - Crea el pedido desde el carrito
+     * - Free: completa y manda a descargas
+     * - Paid: deja en pending y manda a payment */
+
     public function process(Request $request): RedirectResponse
     {
         $cart = Cart::getCart(userId: Auth::id());
@@ -116,9 +143,15 @@ class CheckoutController extends Controller
             ->with('success', '¡Pedido completado! Tus descargas están listas.');
     }
 
-    /**
-     * Display the simulated payment page.
-     */
+    /* ==========================================================
+     * Pago simulado (pantalla)
+     * ========================================================== */
+
+    /* Muestra la pantalla de pago simulado.
+     * - Solo el propietario del pedido puede verlo
+     * - Solo si el pedido sigue en pending
+     * - Pasa al frontend un resumen del pedido + items + billing */
+
     public function payment(Request $request, Order $order): Response|RedirectResponse
     {
         // Verificar que el pedido pertenece al usuario
@@ -157,9 +190,15 @@ class CheckoutController extends Controller
         ]);
     }
 
-    /**
-     * Confirm the simulated payment and mark order as completed.
-     */
+    /* ==========================================================
+     * Pago simulado (confirmación)
+     * ========================================================== */
+
+    /* Confirma el pago simulado.
+     * - Solo propietario
+     * - Solo pending
+     * - Marca pedido como completed/paid y habilita descargas */
+
     public function confirmPayment(Request $request, Order $order): RedirectResponse
     {
         // Verificar que el pedido pertenece al usuario

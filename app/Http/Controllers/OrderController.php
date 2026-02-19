@@ -8,11 +8,22 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* OrderController
+ *
+ * Controla la parte de “mis pedidos” del usuario:
+ * - Listado paginado de pedidos
+ * - Detalle de un pedido concreto
+ *
+ * Nota: se valida que el usuario solo pueda ver sus propios pedidos. */
+
 class OrderController extends Controller
 {
-    /**
-     * Display a listing of the user's orders.
-     */
+    /* ==========================================================
+     * Listado de pedidos
+     * ========================================================== */
+
+    /* Muestra el listado de pedidos del usuario logueado (paginado). */
+
     public function index(): Response
     {
         $orders = Order::forUser(Auth::id())
@@ -25,12 +36,16 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Display a single order.
-     */
+    /* ==========================================================
+     * Detalle de pedido
+     * ========================================================== */
+
+    /* Muestra un pedido concreto.
+     * Seguridad: el usuario solo puede ver los suyos. */
+
     public function show(Order $order): Response
     {
-        // Ensure user can only see their own orders
+        // Asegurar que el usuario solo pueda ver sus propios pedidos
         if ($order->user_id !== Auth::id()) {
             abort(403);
         }

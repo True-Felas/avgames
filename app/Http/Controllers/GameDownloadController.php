@@ -8,9 +8,26 @@ use Illuminate\Support\Facades\Storage;
 
 class GameDownloadController extends Controller
 {
-    /**
-     * Download a game file.
-     */
+    /* Controlador de descargas (GameDownloadController)
+     *
+     * Centraliza el flujo de descarga de juegos (ZIP) y lo protege con:
+     * - validación de archivo/producto activo
+     * - permisos (admin / free / compra completada)
+     * - registro y estadísticas de descargas
+     *
+     * Ojo: la ruta debería ir con middleware auth+verified, pero aquí queda
+     * una segunda capa de seguridad por si alguien toca rutas en el futuro. */
+
+    /* ==========================================================
+     * Descarga
+     * ========================================================== */
+
+    /* Descarga un archivo de juego.
+     * - Comprueba disponibilidad (archivo/producto)
+     * - Comprueba permisos
+     * - Si es GET real, registra estadísticas e historial
+     * - Devuelve el archivo desde el disk "games" */
+
     public function download(Request $request, ProductFile $productFile)
     {
         // Verificar que el archivo existe y esté activo
@@ -37,14 +54,18 @@ class GameDownloadController extends Controller
                 'userAgent' => $request->header('User-Agent'),
             ]);
 
-            // Solo incrementar estadísticas si es una petición GET real (evitar doble conteo por HEAD check del navegador)
+            // Solo incrementar estadísticas si es una petición GET real
+            // (evitamos doble conteo por el HEAD/preview del navegador)
             if ($request->isMethod('GET')) {
-                // Incrementar contador de descargas
+
+                // Incrementar contador de descargas del archivo
                 $productFile->incrementDownloads();
+
                 // $productFile->product->incrementDownloads(); // Comentado para verificar si se incrementa solo
 
                 // Registrar descarga en el historial del usuario (para estadísticas y nivel)
                 if ($user = auth()->user()) {
+
                     $user->downloads()->attach($productFile->product_id, [
                         'downloaded_at' => now(),
                         'ip_address' => $request->ip(),
@@ -69,10 +90,17 @@ class GameDownloadController extends Controller
         }
     }
 
-    /**
-     * Check if user can download the file.
-     * Requires authenticated user for ALL downloads (including free).
-     */
+    /* ==========================================================
+     * Permisos de descarga
+     * ========================================================== */
+
+    /* Comprueba si el usuario puede descargar el archivo.
+     * Reglas:
+     * - siempre requiere usuario logueado (aunque sea free)
+     * - admin: siempre
+     * - si es gratis: permitido
+     * - si es de pago: requiere pedido completado */
+
     private function canDownload(Request $request, ProductFile $productFile): bool
     {
         $user = auth()->user();
@@ -101,9 +129,8 @@ class GameDownloadController extends Controller
         return false;
     }
 
-    /**
-     * Check if user purchased the product.
-     */
+    /* Comprueba si el usuario compró el producto (pedido completado). */
+
     private function userPurchasedProduct(int $userId, int $productId): bool
     {
         return \App\Models\Order::query()
@@ -115,9 +142,13 @@ class GameDownloadController extends Controller
             ->exists();
     }
 
-    /**
-     * Get file info without downloading.
-     */
+    /* ==========================================================
+     * Info de archivo (sin descargar)
+     * ========================================================== */
+
+    /* Devuelve información del archivo para UI (tamaño, versión, descargas, etc.)
+     * No descarga nada, solo responde JSON. */
+
     public function info(ProductFile $productFile)
     {
         if (!$productFile->is_active) {

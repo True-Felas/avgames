@@ -9,9 +9,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 
+/* Modelo Product
+ *
+ * Representa un juego/producto del catálogo.
+ * Aquí guardamos datos generales (precio, stock, plataforma, etc.)
+ * y definimos relaciones (categoría, archivos ZIP, items de carrito/pedido).
+ *
+ * Nota: se añaden accesores (image_url, current_price, etc.) para facilitar el uso en frontend. */
+
 class Product extends Model
 {
     use HasFactory;
+
+    /* Campos asignables en creación/edición (mass assignment). */
 
     protected $fillable = [
         'category_id',
@@ -35,6 +45,8 @@ class Product extends Model
         'downloads',
     ];
 
+    /* Casts: tipos automáticos para trabajar más cómodo en PHP. */
+
     protected $casts = [
         'price' => 'float',
         'sale_price' => 'float',
@@ -48,6 +60,8 @@ class Product extends Model
         'release_year' => 'integer',
     ];
 
+    /* Valores por defecto al crear el modelo (si no vienen en DB / request). */
+
     protected $attributes = [
         'price' => 0,
         'sale_price' => null,
@@ -55,39 +69,38 @@ class Product extends Model
         'downloads' => 0,
     ];
 
+    /* Atributos "virtuales" que se añaden al JSON automáticamente. */
+
     protected $appends = ['image_url', 'current_price', 'is_on_sale', 'is_free'];
 
-    /**
-     * Get the category that owns the product.
-     * Relación belongsTo: Un producto pertenece a una categoría
-     */
+    // ==========================================================
+    // Relaciones
+    // ==========================================================
+
+    /* Relación: un producto pertenece a una categoría. */
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    /**
-     * Get the cart items for this product.
-     * Relación hasMany: Un producto puede estar en muchos carritos
-     */
+    /* Relación: un producto puede aparecer en muchos items de carrito. */
+
     public function cartItems(): HasMany
     {
         return $this->hasMany(CartItem::class);
     }
 
-    /**
-     * Get the order items for this product.
-     * Relación hasMany: Un producto puede estar en muchos pedidos
-     */
+    /* Relación: un producto puede aparecer en muchos items de pedido. */
+
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * Get the users who downloaded this product.
-     * Relación belongsToMany: Un producto puede ser descargado por muchos usuarios
-     */
+    /* Relación: usuarios que han descargado este producto.
+     * Tabla pivote: user_downloads (con datos extra del evento de descarga). */
+
     public function downloadedBy(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_downloads')
@@ -95,33 +108,37 @@ class Product extends Model
             ->withTimestamps();
     }
 
-    /**
-     * Get all downloadable files for this product.
-     * Relación hasMany: Un producto puede tener múltiples archivos descargables
-     */
+    /* Relación: archivos descargables asociados al producto (por ejemplo ZIPs). */
+
     public function files(): HasMany
     {
         return $this->hasMany(ProductFile::class);
     }
 
-    /**
-     * Get the active files only.
-     */
+    /* Archivos activos (útil para saber si se puede descargar). */
+
     public function activeFiles(): HasMany
     {
         return $this->files()->where('is_active', true);
     }
 
-    /**
-     * Get the full image URL.
-     */
+    // ==========================================================
+    // Accesores (atributos calculados)
+    // ==========================================================
+
+    /* URL completa de la imagen principal.
+     * - Si no hay imagen: null
+     * - Si ya viene como URL externa: se devuelve tal cual
+     * - Si es ruta en storage: se transforma con Storage::url() */
+
     public function getImageUrlAttribute(): ?string
     {
         if (!$this->image) {
             return null;
         }
 
-        // If it's already a full URL, return as is
+        // Si ya es una URL completa, no tocamos nada
+
         if (str_starts_with($this->image, 'http')) {
             return $this->image;
         }
@@ -129,73 +146,68 @@ class Product extends Model
         return Storage::url($this->image);
     }
 
-    /**
-     * Get the current price (sale or regular).
-     */
+    /* Precio actual: si hay oferta usa sale_price, si no usa price. */
+
     public function getCurrentPriceAttribute(): float
     {
         return (float) ($this->sale_price ?? $this->price ?? 0);
     }
 
-    /**
-     * Check if product is on sale.
-     */
+    /* Indica si el producto está en oferta. */
+
     public function getIsOnSaleAttribute(): bool
     {
         return $this->sale_price !== null && $this->sale_price < $this->price;
     }
 
-    /**
-     * Check if product is free.
-     */
+    /* Indica si el producto es gratuito. */
+
     public function getIsFreeAttribute(): bool
     {
         return $this->current_price == 0;
     }
 
-    /**
-     * Scope for active products.
-     */
+    // ==========================================================
+    // Scopes (filtros reutilizables)
+    // ==========================================================
+
+    /* Solo productos activos. */
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    /**
-     * Scope for featured products.
-     */
+    /* Solo productos destacados. */
+
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
     }
 
-    /**
-     * Scope for new releases.
-     */
+    /* Solo novedades. */
+
     public function scopeNewReleases($query)
     {
         return $query->where('is_new_release', true);
     }
 
-    /**
-     * Scope for products in stock.
-     */
+    /* Solo productos con stock. */
+
     public function scopeInStock($query)
     {
         return $query->where('stock', '>', 0);
     }
 
-    /**
-     * Scope for filtering by category.
-     */
+    /* Filtrar por categoría. */
+
     public function scopeByCategory($query, $categoryId)
     {
         return $query->where('category_id', $categoryId);
     }
 
-    /**
-     * Scope for searching products.
-     */
+    /* Búsqueda simple por texto en campos típicos. */
+
     public function scopeSearch($query, $term)
     {
         return $query->where(function ($q) use ($term) {
@@ -206,9 +218,8 @@ class Product extends Model
         });
     }
 
-    /**
-     * Scope for products with active files.
-     */
+    /* Productos que tienen al menos un archivo activo asociado. */
+
     public function scopeHasFiles($query)
     {
         return $query->whereHas('files', function ($q) {
@@ -216,9 +227,12 @@ class Product extends Model
         });
     }
 
-    /**
-     * Increment download count.
-     */
+    // ==========================================================
+    // Utilidad
+    // ==========================================================
+
+    /* Incrementa el contador de descargas del producto. */
+    
     public function incrementDownloads(): void
     {
         $this->increment('downloads');

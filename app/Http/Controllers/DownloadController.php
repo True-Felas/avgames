@@ -10,11 +10,19 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* DownloadController
+ *
+ * Pantalla intermedia de “cola de descargas”.
+ * - Coge el último pedido del usuario (o uno concreto si viene por query ?order=ID)
+ * - Para cada item del pedido, busca el último archivo activo del producto (ZIP)
+ * - Devuelve a Inertia una lista lista para pintar: producto + archivo + tamaños totales
+ *
+ * Nota: la descarga real la gestiona GameDownloadController (ruta download.game). */
+
 class DownloadController extends Controller
 {
-    /**
-     * Display the download queue page.
-     */
+    /* Muestra la cola de descargas (último pedido o pedido indicado por parámetro). */
+
     public function index(Request $request): Response|RedirectResponse
     {
         $orderId = $request->get('order');
@@ -25,7 +33,7 @@ class DownloadController extends Controller
                 abort(403);
             }
         } else {
-            // Get last order
+            // Si no se indica pedido, usamos el más reciente del usuario
             $order = Order::forUser(Auth::id())
                 ->with('items.product')
                 ->latest()
@@ -37,8 +45,9 @@ class DownloadController extends Controller
                 ->with('error', 'No tienes pedidos recientes para descargar.');
         }
 
+        // Montamos la estructura que necesita el frontend (producto + último archivo activo)
         $items = $order->items->map(function ($item) {
-            // Find latest active file for this product
+            // Buscar el archivo activo más reciente por versión
             $latestFile = $item->product->activeFiles()->orderByDesc('version')->first();
 
             return [
@@ -59,6 +68,7 @@ class DownloadController extends Controller
             ];
         });
 
+        // Tamaño total (sumando el último archivo activo de cada producto)
         $totalSizeBytes = $order->items->sum(function ($item) {
             $latestFile = $item->product->activeFiles()->orderByDesc('version')->first();
             return $latestFile ? $latestFile->file_size : 0;
@@ -73,13 +83,14 @@ class DownloadController extends Controller
         ]);
     }
 
-    /**
-     * Initialize download process (placeholder for future functionality).
-     */
+    /* Punto “placeholder” (futuro).
+     * De momento solo redirige a una pantalla de éxito.
+     * Ojo: ahora mismo se crea $cart pero no se usa (no pasa nada, pero canta un pelín). */
+
     public function initialize(Request $request): RedirectResponse
     {
-        // TODO: Implement download initialization logic
-        // For now, just clear the cart and redirect
+        // TODO: Implementar lógica real de inicialización de descargas (si algún día hace falta)
+        // Por ahora, solo redirigimos.
 
         $cart = Cart::getCart(userId: Auth::id());
 
@@ -87,9 +98,10 @@ class DownloadController extends Controller
             ->with('success', 'Inicialización completada. Las descargas comenzarán pronto.');
     }
 
-    /**
-     * Calculate file size based on platform.
-     */
+    /* (No se usa ahora mismo)
+     * Cálculo “falso” de tamaño por plataforma. Sirve como apoyo si algún día
+     * no tenéis file_size real en DB o queréis mostrar estimaciones. */
+
     private function calculateFileSize(string $platform): string
     {
         $sizeKB = match ($platform) {
@@ -106,9 +118,8 @@ class DownloadController extends Controller
         return $this->formatBytes($sizeKB * 1024);
     }
 
-    /**
-     * Format bytes to human-readable format.
-     */
+    /* Formatea bytes a algo legible (KB/MB/GB). */
+
     private function formatBytes(int $bytes): string
     {
         if ($bytes >= 1073741824) {
