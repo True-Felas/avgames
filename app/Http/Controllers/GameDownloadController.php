@@ -29,11 +29,19 @@ class GameDownloadController extends Controller
         }
 
         try {
+            \Illuminate\Support\Facades\Log::info('Download request received', [
+                'file_id' => $productFile->id,
+                'method' => $request->method(),
+                'user_id' => auth()->id(),
+                'ip' => $request->ip(),
+                'userAgent' => $request->header('User-Agent'),
+            ]);
+
             // Solo incrementar estadísticas si es una petición GET real (evitar doble conteo por HEAD check del navegador)
             if ($request->isMethod('GET')) {
                 // Incrementar contador de descargas
                 $productFile->incrementDownloads();
-                $productFile->product->incrementDownloads();
+                // $productFile->product->incrementDownloads(); // Comentado para verificar si se incrementa solo
 
                 // Registrar descarga en el historial del usuario (para estadísticas y nivel)
                 if ($user = auth()->user()) {

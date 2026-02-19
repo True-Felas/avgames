@@ -27,11 +27,7 @@ class ProfileController extends Controller
         $stats = [
             'total_orders' => $user->orders()->count(),
             'total_spent' => $user->orders()->where('status', 'completed')->sum('total'),
-            'total_downloads' => $user->orders()
-                ->where('status', 'completed')
-                ->withSum('items', 'quantity')
-                ->get()
-                ->sum('items_sum_quantity') ?? 0,
+            'total_downloads' => $user->downloads()->count(),
         ];
 
         return Inertia::render('store/profile', [
