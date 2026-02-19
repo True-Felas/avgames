@@ -3,20 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* Controlador Profile (zona tienda)
+ *
+ * Muestra el perfil del usuario logueado:
+ * - Datos básicos
+ * - Últimos pedidos
+ * - Estadísticas personales (gasto, descargas, etc.)
+ */
+
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile page with order history.
-     */
+    /* Página principal del perfil del usuario. */
+
     public function index(): Response
     {
         /** @var User $user */
         $user = Auth::user();
+
+        // Últimos 5 pedidos del usuario
 
         $recentOrders = $user->orders()
             ->with('items')
@@ -24,9 +32,13 @@ class ProfileController extends Controller
             ->take(5)
             ->get();
 
+        // Estadísticas rápidas del usuario
+
         $stats = [
             'total_orders' => $user->orders()->count(),
-            'total_spent' => $user->orders()->where('status', 'completed')->sum('total'),
+            'total_spent' => $user->orders()
+                ->where('status', 'completed')
+                ->sum('total'),
             'total_downloads' => $user->downloads()->count(),
         ];
 

@@ -12,12 +12,13 @@ use Inertia\Response;
 
 /* DownloadController
  *
- * Pantalla intermedia de “cola de descargas”.
- * - Coge el último pedido del usuario (o uno concreto si viene por query ?order=ID)
- * - Para cada item del pedido, busca el último archivo activo del producto (ZIP)
- * - Devuelve a Inertia una lista lista para pintar: producto + archivo + tamaños totales
+ * Muestra la pantalla de “cola de descargas”.
+ * - Obtiene el pedido del usuario (último o uno concreto)
+ * - Busca el archivo activo más reciente de cada producto
+ * - Prepara los datos para que el frontend pinte la lista
  *
- * Nota: la descarga real la gestiona GameDownloadController (ruta download.game). */
+ * La descarga real la gestiona GameDownloadController. 
+ */
 
 class DownloadController extends Controller
 {

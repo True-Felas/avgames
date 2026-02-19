@@ -8,11 +8,21 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/* CatalogController
+ *
+ * Controla las vistas públicas de la tienda:
+ * - Home (destacado + populares)
+ * - Catálogo con filtros
+ * - Ficha de producto
+ * - Discover (novedades / top rating / recomendaciones por categoría)
+ *
+ * Nota: casi todas las consultas filtran por productos activos y con ZIP activo (hasFiles()).
+ */
+
 class CatalogController extends Controller
 {
-    /**
-     * Display the home page with featured products.
-     */
+    /* Home: producto destacado + lista de populares + categorías */
+
     public function index(): Response
     {
         $featuredProduct = Product::with('category')
@@ -47,26 +57,25 @@ class CatalogController extends Controller
         ]);
     }
 
-    /**
-     * Display the catalog/library page with all products.
-     */
+    /* Catálogo / biblioteca: listado con filtros y ordenación */
+
     public function catalog(Request $request): Response
     {
         $query = Product::with('category')->active()->hasFiles();
 
-        // Filter by category
+        // Filtro por categoría (slug)
         if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {
                 $q->where('slug', $request->category);
             });
         }
 
-        // Filter by platform
+        // Filtro por plataforma
         if ($request->filled('platform')) {
             $query->where('platform', $request->platform);
         }
 
-        // Filter by price (free or paid)
+        // Filtro por precio (free / paid)
         if ($request->filled('price')) {
             if ($request->price === 'free') {
                 $query->where('price', 0);
@@ -75,12 +84,12 @@ class CatalogController extends Controller
             }
         }
 
-        // Search
+        // Búsqueda por texto
         if ($request->filled('search')) {
             $query->search($request->search);
         }
 
-        // Sorting
+        // Ordenación
         $sort = $request->get('sort', 'popular');
         switch ($sort) {
             case 'newest':
@@ -131,9 +140,8 @@ class CatalogController extends Controller
         ]);
     }
 
-    /**
-     * Display a single product page.
-     */
+    /* Ficha de producto */
+
     public function show(string $slug): Response
     {
         $product = Product::with(['category', 'activeFiles'])
@@ -155,9 +163,8 @@ class CatalogController extends Controller
         ]);
     }
 
-    /**
-     * Display the discover page with new releases and recommendations.
-     */
+    /* Discover: novedades + top rating + recomendaciones por categoría */
+
     public function discover(): Response
     {
         $newReleases = Product::with('category')

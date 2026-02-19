@@ -8,25 +8,28 @@ use Illuminate\Support\Facades\Storage;
 
 class GameDownloadController extends Controller
 {
-    /* Controlador de descargas (GameDownloadController)
-     *
-     * Centraliza el flujo de descarga de juegos (ZIP) y lo protege con:
-     * - validación de archivo/producto activo
-     * - permisos (admin / free / compra completada)
-     * - registro y estadísticas de descargas
-     *
-     * Ojo: la ruta debería ir con middleware auth+verified, pero aquí queda
-     * una segunda capa de seguridad por si alguien toca rutas en el futuro. */
+    /* GameDownloadController
+    *
+    * Gestiona la descarga real de los archivos ZIP.
+    * - Valida que producto y archivo estén activos
+    * - Comprueba permisos (admin, gratuito o comprado)
+    * - Registra estadísticas e historial de descarga
+    *
+    * Incluye una segunda capa de seguridad además del middleware. */
 
     /* ==========================================================
      * Descarga
      * ========================================================== */
 
-    /* Descarga un archivo de juego.
-     * - Comprueba disponibilidad (archivo/producto)
-     * - Comprueba permisos
-     * - Si es GET real, registra estadísticas e historial
-     * - Devuelve el archivo desde el disk "games" */
+    /* ==========================================================
+    * Descarga
+    * ========================================================== */
+
+    /* Ejecuta la descarga:
+    * - Verifica disponibilidad
+    * - Verifica permisos
+    * - Registra estadísticas si procede
+    * - Devuelve el archivo desde el disco "games" */
 
     public function download(Request $request, ProductFile $productFile)
     {
