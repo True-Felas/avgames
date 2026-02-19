@@ -14,39 +14,37 @@ use App\Http\Controllers\GameDownloadController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 /*
 |--------------------------------------------------------------------------
-| Store Routes (Public)
+| Rutas públicas (tienda)
 |--------------------------------------------------------------------------
 */
 
-// Home page
+// Home
 Route::get('/', [CatalogController::class, 'index'])->name('home');
 
-// Simple ping endpoint used by the frontend to measure latency
+// Ping simple para comprobar latencia desde el frontend
 Route::get('/ping', function () {
-    // return server timestamp in milliseconds
     return response()->json([
         'ts' => (int) round(microtime(true) * 1000),
     ]);
 });
 
-// Catalog / Library
+// Catálogo / Biblioteca
 Route::get('/catalog', [CatalogController::class, 'catalog'])->name('catalog');
 Route::get('/library', [CatalogController::class, 'catalog'])->name('library');
 
 // Discover
 Route::get('/discover', [CatalogController::class, 'discover'])->name('discover');
 
-// Product detail
+// Ficha de producto
 Route::get('/product/{slug}', [CatalogController::class, 'show'])->name('product.show');
+
 
 /*
 |--------------------------------------------------------------------------
-| Cart Routes (Public - uses session for guests)
+| Carrito (público: invitados por sesión)
 |--------------------------------------------------------------------------
 */
 
@@ -59,26 +57,27 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::get('/count', [CartController::class, 'count'])->name('count');
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| Protected Routes (Authenticated users)
+| Rutas protegidas (usuario logueado)
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard redirect to profile
+    // El "dashboard" redirige al perfil (para no tener dos pantallas similares)
     Route::get('dashboard', function () {
         return redirect()->route('profile.index');
     })->name('dashboard');
 
-    // Profile
+    // Perfil
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
 
-    // Game Downloads (auth required for all downloads)
+    // Descarga de juegos (se controla permiso dentro del controlador)
     Route::get('/download/game/{productFile}', [GameDownloadController::class, 'download'])->name('download.game');
     Route::get('/api/games/{productFile}/info', [GameDownloadController::class, 'info'])->name('games.info');
 
-    // Download Queue
+    // Cola de descargas
     Route::get('/downloads/queue', [DownloadController::class, 'index'])->name('downloads.queue');
     Route::post('/downloads/initialize', [DownloadController::class, 'initialize'])->name('downloads.initialize');
 
@@ -86,18 +85,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
 
-    // Simulated Payment
+    // Pago simulado
     Route::get('/payment/{order}', [CheckoutController::class, 'payment'])->name('payment.show');
     Route::post('/payment/{order}/confirm', [CheckoutController::class, 'confirmPayment'])->name('payment.confirm');
 
-    // Orders
+    // Pedidos
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| Admin Routes
+| Admin (auth + verified + admin)
 |--------------------------------------------------------------------------
 */
 
@@ -105,13 +105,13 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     // Dashboard
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Statistics
+    // Estadísticas
     Route::get('/statistics', [AdminStatisticsController::class, 'index'])->name('statistics');
 
-    // Products CRUD
+    // Productos (CRUD)
     Route::resource('products', AdminProductController::class);
 
-    // Game Files Management
+    // Gestión de archivos ZIP por producto
     Route::prefix('products/{product}/files')->name('games.files.')->group(function () {
         Route::get('/', [GameFileController::class, 'index'])->name('index');
         Route::get('/create', [GameFileController::class, 'create'])->name('create');
@@ -122,10 +122,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
         Route::patch('/{productFile}/toggle', [GameFileController::class, 'toggle'])->name('toggle');
     });
 
-    // Categories CRUD
+    // Categorías (CRUD)
     Route::resource('categories', AdminCategoryController::class);
 
-    // Users Management
+    // Usuarios
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::patch('/users/{user}/level', [AdminUserController::class, 'updateLevel'])->name('users.update-level');
@@ -136,4 +136,5 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 });
 
+// Rutas de settings (perfil, password, 2FA, etc.)
 require __DIR__ . '/settings.php';

@@ -10,11 +10,8 @@ class PasswordUpdateRequest extends FormRequest
 {
     use PasswordValidationRules;
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    // Reglas de validación para actualizar la contraseña.
+    
     public function rules(): array
     {
         return [

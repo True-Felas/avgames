@@ -13,19 +13,26 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
+/* FortifyServiceProvider
+ *
+ * Configura Laravel Fortify (login, registro, reset de contraseña, 2FA).
+ * Aquí se “enchufan”:
+ * - Acciones (crear usuario, resetear password)
+ * - Vistas (en este caso, páginas Inertia/React)
+ * - Rate limiting (evitar fuerza bruta en login y 2FA)
+ */
+
 class FortifyServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
+    /* Registro de servicios (ahora mismo no se usa). */
+
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
+    /* Configuración principal que se ejecuta al arrancar la app. */
+
     public function boot(): void
     {
         $this->configureActions();
@@ -33,18 +40,16 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
     }
 
-    /**
-     * Configure Fortify actions.
-     */
+    /* Acciones que Fortify usará para crear usuarios y resetear contraseñas. */
+
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
     }
 
-    /**
-     * Configure Fortify views.
-     */
+    /* “Vistas” de Fortify: aquí se mapea cada pantalla a su componente Inertia. */
+
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
@@ -73,9 +78,8 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
     }
 
-    /**
-     * Configure rate limiting.
-     */
+    /* Límites para evitar intentos masivos de login / 2FA. */
+
     private function configureRateLimiting(): void
     {
         RateLimiter::for('two-factor', function (Request $request) {
@@ -83,7 +87,9 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+            $throttleKey = Str::transliterate(
+                Str::lower($request->input(Fortify::username())) . '|' . $request->ip()
+            );
 
             return Limit::perMinute(5)->by($throttleKey);
         });

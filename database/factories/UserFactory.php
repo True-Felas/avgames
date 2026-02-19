@@ -6,20 +6,23 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
- */
+/*
+|--------------------------------------------------------------------------
+| UserFactory
+|--------------------------------------------------------------------------
+| Genera usuarios de prueba para seeders y tests.
+| Incluye nivel, experiencia, estado y flags básicos del sistema.
+*/
+
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
+    /*
+     * Contraseña reutilizada para no recalcular el hash en cada usuario.
      */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
+    /*
+     * Estado base del usuario
      */
     public function definition(): array
     {
@@ -27,11 +30,18 @@ class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+
+            // Se usa siempre la misma contraseña en entorno de prueba
             'password' => static::$password ??= Hash::make('password'),
+
             'remember_token' => Str::random(10),
+
+            // 2FA desactivado por defecto
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+
+            // Datos propios de tu sistema
             'is_admin' => false,
             'level' => fake()->numberBetween(1, 50),
             'experience' => fake()->numberBetween(0, 5000),
@@ -42,8 +52,8 @@ class UserFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
+    /*
+     * Usuario sin email verificado
      */
     public function unverified(): static
     {
@@ -52,8 +62,8 @@ class UserFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the model has two-factor authentication configured.
+    /*
+     * Usuario con doble factor activado (simulado)
      */
     public function withTwoFactor(): static
     {

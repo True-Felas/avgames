@@ -13,7 +13,7 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create admin user if doesn't exist
+        // Crea un usuario admin si no existe
         User::firstOrCreate(
             ['email' => 'admin@avgames.com'],
             [

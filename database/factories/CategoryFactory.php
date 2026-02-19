@@ -6,17 +6,20 @@ use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Category>
- */
+/*
+|--------------------------------------------------------------------------
+| CategoryFactory
+|--------------------------------------------------------------------------
+| Genera categorías de prueba para seeders y testing.
+| Incluye nombre, icono, color y orden aleatorio.
+*/
+
 class CategoryFactory extends Factory
 {
     protected $model = Category::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
+    /*
+     * Estado base de una categoría
      */
     public function definition(): array
     {
@@ -70,8 +73,8 @@ class CategoryFactory extends Factory
         ];
     }
 
-    /**
-     * Indicate that the category is inactive.
+    /*
+     * Variante: categoría inactiva
      */
     public function inactive(): static
     {

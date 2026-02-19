@@ -6,12 +6,12 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-/**
- * Componente para mostrar archivos descargables de un producto
- * 
- * Uso en Blade:
- * <x-product-files :product="$product" />
+/* ProductFiles
+ *
+ * Componente Blade para listar los archivos descargables
+ * de un producto (solo los activos).
  */
+
 class ProductFiles extends Component
 {
     public function __construct(
@@ -33,25 +33,19 @@ class ProductFiles extends Component
         ]);
     }
 
-    /**
-     * Get total downloads for all product files
-     */
+    // Total de descargas acumuladas del producto
     public function getTotalDownloads(): int
     {
         return $this->product->files()->sum('downloads');
     }
 
-    /**
-     * Check if product has any downloadable files
-     */
+    // Mira si tiene al menos un archivo activo
     public function hasFiles(): bool
     {
         return $this->product->activeFiles()->exists();
     }
 
-    /**
-     * Get the latest file version
-     */
+    // Devuelve la última versión disponible
     public function getLatestVersion(): ?string
     {
         return $this->product->activeFiles()

@@ -7,17 +7,20 @@ use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Product>
- */
+/*
+|--------------------------------------------------------------------------
+| ProductFactory
+|--------------------------------------------------------------------------
+| Genera productos/juegos de prueba con estética retro (nombre, plataforma,
+| precio, rating, etc.). Útil para seeders y tests.
+*/
+
 class ProductFactory extends Factory
 {
     protected $model = Product::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
+    /*
+     * Estado base del producto (juego)
      */
     public function definition(): array
     {
@@ -33,7 +36,10 @@ class ProductFactory extends Factory
         $developers = ['NEONTRONICS', 'PIXELFORGE', 'SYNTHWAVE STUDIOS', 'RETROBIT GAMES', 'CYBER DYNAMICS', 'TURBO SOFT'];
         $publishers = ['RETRO STORE PUBLISHING', 'ARCADE CLASSICS INC', 'DIGITAL NOSTALGIA', 'LEGACY GAMES'];
 
+        // Repetimos algunos 0 para que sea fácil que salgan juegos gratis en pruebas
         $price = fake()->randomElement([0, 0, 0, 4.99, 9.99, 14.99, 19.99, 24.99, 29.99]);
+
+        // Descuento solo si hay precio, y no siempre
         $hasDiscount = $price > 0 && fake()->boolean(30);
 
         return [
@@ -44,7 +50,7 @@ class ProductFactory extends Factory
             'short_description' => fake()->sentence(15),
             'price' => $price,
             'sale_price' => $hasDiscount ? round($price * 0.7, 2) : null,
-            'image' => null, // Will be set by seeder or uploaded
+            'image' => null, // normalmente lo rellena el seeder o se sube desde admin
             'gallery' => null,
             'stock' => fake()->numberBetween(10, 1000),
             'is_featured' => fake()->boolean(20),
@@ -59,8 +65,8 @@ class ProductFactory extends Factory
         ];
     }
 
-    /**
-     * Generate a retro-style game description.
+    /*
+     * Descripción “retro” (texto inventado para rellenar el catálogo de prueba)
      */
     private function generateRetroDescription(): string
     {
@@ -85,9 +91,10 @@ class ProductFactory extends Factory
             fake()->paragraph(3);
     }
 
-    /**
-     * Indicate that the product is featured.
+    /*
+     * Variantes rápidas (states)
      */
+
     public function featured(): static
     {
         return $this->state(fn(array $attributes) => [
@@ -95,9 +102,6 @@ class ProductFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the product is a new release.
-     */
     public function newRelease(): static
     {
         return $this->state(fn(array $attributes) => [
@@ -105,9 +109,6 @@ class ProductFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the product is free.
-     */
     public function free(): static
     {
         return $this->state(fn(array $attributes) => [
@@ -116,9 +117,6 @@ class ProductFactory extends Factory
         ]);
     }
 
-    /**
-     * Indicate that the product is inactive.
-     */
     public function inactive(): static
     {
         return $this->state(fn(array $attributes) => [

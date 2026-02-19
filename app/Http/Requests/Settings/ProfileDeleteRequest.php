@@ -10,11 +10,8 @@ class ProfileDeleteRequest extends FormRequest
 {
     use PasswordValidationRules;
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    // Reglas para confirmar contraseña antes de eliminar la cuenta.
+    
     public function rules(): array
     {
         return [
