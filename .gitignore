@@ -26,7 +26,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-/storage/app/games
+# /storage/app/games (Comented out to allow demo ZIPs)
 
 # Private files containing credentials or server data
 private/
