@@ -10,13 +10,397 @@
 |---|---|
 | **Backend** | Laravel 11 (PHP 8.2+) |
 | **Frontend** | React 18 + TypeScript (Inertia.js) |
-| **Base de Datos** | SQLite / MySQL / PostgreSQL |
+| **Base de Datos** | **MySQL 8.0+** |
 | **Estilos** | Tailwind CSS (tema synthwave personalizado) |
 | **Autenticación** | Laravel Fortify (login, registro, 2FA) |
-| **Storage** | Laravel Storage (disco `games` para ZIPs, disco `public` para imágenes) |
+| **Storage** | Laravel Storage (disco local `games` para ZIPs, `public` para imágenes) |
 | **Bundler** | Vite |
 
 ---
+
+## 2. Requisitos Funcionales
+
+| ID | Requisito | Actor(es) |
+|---|---|---|
+| RF-01 | Registro de usuario con nombre, email y contraseña | Visitante |
+| RF-02 | Inicio de sesión con email y contraseña | Visitante |
+| RF-03 | Autenticación en dos factores (2FA) | Usuario |
+| RF-04 | Navegación por el catálogo de productos con paginación | Visitante / Usuario |
+| RF-05 | Búsqueda de productos por nombre, desarrollador o publisher | Visitante / Usuario |
+| RF-06 | Filtrado de productos por categoría, plataforma, precio y estado | Visitante / Usuario |
+| RF-07 | Visualización del detalle de un producto | Visitante / Usuario |
+| RF-08 | Añadir productos al carrito (requiere archivo descargable activo) | Visitante / Usuario |
+| RF-09 | Gestionar carrito (modificar cantidad, eliminar, vaciar) | Visitante / Usuario |
+| RF-10 | Realizar checkout con datos de facturación y método de pago | Usuario autenticado |
+| RF-11 | Pago simulado (tarjeta de crédito, PayPal, transferencia bancaria) | Usuario autenticado |
+| RF-12 | Confirmación automática para pedidos gratuitos (total = 0) | Usuario autenticado |
+| RF-13 | Descargar archivos de juegos comprados o gratuitos | Usuario autenticado |
+| RF-14 | Ver historial de pedidos y detalle de cada pedido | Usuario autenticado |
+| RF-15 | Ver perfil con estadísticas (pedidos, descargas, nivel) | Usuario autenticado |
+| RF-16 | Sistema de niveles de usuario basado en descargas (cada 5 descargas = 1 nivel) | Usuario autenticado |
+| RF-17 | Panel de administración con dashboard de estadísticas | Administrador |
+| RF-18 | CRUD completo de productos (crear, leer, actualizar, eliminar) | Administrador |
+| RF-19 | CRUD completo de categorías | Administrador |
+| RF-20 | Gestión de archivos descargables por producto (subir/editar/eliminar ZIPs) | Administrador |
+| RF-21 | Gestión de usuarios (listar, ver detalle, banear, suspender, activar, eliminar) | Administrador |
+| RF-22 | Vista de estadísticas avanzadas (descargas por día, por categoría, por plataforma, top users) | Administrador |
+| RF-23 | Modificar nivel y experiencia de un usuario manualmente | Administrador |
+| RF-24 | Promover/revocar privilegios de administrador a un usuario | Administrador |
+
+---
+
+## 3. Requisitos No Funcionales
+
+| ID | Requisito | Detalle |
+|---|---|---|
+| RNF-01 | **Seguridad** | Las descargas requieren autenticación. Las rutas de admin están protegidas por middleware `auth + verified + admin`. Las contraseñas se almacenan hasheadas. |
+| RNF-02 | **Rendimiento** | Paginación en listados (12 elementos/página). Carga lazy de relaciones con Eloquent. |
+| RNF-03 | **Usabilidad** | Diseño responsivo con estética retro/synthwave consistente. SPA con Inertia.js (sin recargas de página). |
+| RNF-04 | **Mantenibilidad** | Arquitectura MVC (Laravel). Separación clara backend/frontend. Migrations versionadas. Seeders y factories para datos de prueba. |
+| RNF-05 | **Compatibilidad** | PHP 8.2+, Node.js 18+, navegadores modernos (Chrome, Firefox, Edge, Safari). |
+| RNF-06 | **Integridad de datos** | Foreign keys con `onDelete('cascade')`. Validación de formularios tanto en frontend como en backend. |
+| RNF-07 | **Extensibilidad** | Sistema de roles simple (`is_admin`), preparado para ampliación. Múltiples métodos de pago soportados. |
+
+---
+
+## 4. Diagrama de Casos de Uso
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                            AVGames                                  │
+│                                                                     │
+│                                                                     │
+│   ┌──────────────────────────┐                                      │
+│   │   Registrarse (CU-01)    │◄──── Visitante                       │
+│   └──────────────────────────┘                                      │
+│                                                                     │
+│   ┌──────────────────────────┐                                      │
+│   │   Iniciar Sesión (CU-02) │◄──── Visitante                       │
+│   └────────────┬─────────────┘                                      │
+│                │ «include»                                          │
+│                ▼                                                     │
+│   ┌──────────────────────────┐                                      │
+│   │   Ver Catálogo (CU-03)   │◄──── Visitante / Usuario             │
+│   └──────────────────────────┘                                      │
+│                                                                     │
+│   ┌──────────────────────────┐                                      │
+│   │   Buscar Productos       │◄──── Visitante / Usuario             │
+│   │        (CU-04)           │                                      │
+│   └──────────────────────────┘                                      │
+│                                                                     │
+│   ┌──────────────────────────┐                                      │
+│   │   Filtrar por Categoría  │◄──── Visitante / Usuario             │
+│   │        (CU-05)           │                                      │
+│   └──────────────────────────┘                                      │
+│                                                                     │
+│   ┌──────────────────────────┐                                      │
+│   │   Ver Detalle Producto   │◄──── Visitante / Usuario             │
+│   │        (CU-06)           │                                      │
+│   └──────────────────────────┘                                      │
+│                                                                     │
+│   ┌──────────────────────────┐      ┌──────────────────────┐        │
+│   │  Añadir al Carrito       │◄─────│                      │        │
+│   │        (CU-07)           │      │                      │        │
+│   └──────────────────────────┘      │      Usuario         │        │
+│                                     │   (autenticado)      │        │
+│   ┌──────────────────────────┐      │                      │        │
+│   │  Gestionar Carrito       │◄─────│                      │        │
+│   │        (CU-08)           │      │                      │        │
+│   └──────────────────────────┘      └──────────┬───────────┘        │
+│                                                │                    │
+│   ┌──────────────────────────┐                 │                    │
+│   │  Realizar Checkout       │◄────────────────┤                    │
+│   │        (CU-09)           │                 │                    │
+│   └────────────┬─────────────┘                 │                    │
+│                │ «include»                     │                    │
+│                ▼                                │                    │
+│   ┌──────────────────────────┐                 │                    │
+│   │  Pago Simulado (CU-10)   │                 │                    │
+│   └────────────┬─────────────┘                 │                    │
+│                │ «include»                     │                    │
+│                ▼                                │                    │
+│   ┌──────────────────────────┐                 │                    │
+│   │  Descargar Juego (CU-11) │◄────────────────┤                    │
+│   └──────────────────────────┘                 │                    │
+│                                                │                    │
+│   ┌──────────────────────────┐                 │                    │
+│   │  Ver Pedidos (CU-12)     │◄────────────────┤                    │
+│   └──────────────────────────┘                 │                    │
+│                                                │                    │
+│   ┌──────────────────────────┐                 │                    │
+│   │  Ver Perfil (CU-13)     │◄─────────────────┘                    │
+│   └──────────────────────────┘                                      │
+│                                                                     │
+│   ════════════════════════════════════════════                       │
+│                                                                     │
+│   ┌──────────────────────────┐      ┌──────────────────────┐        │
+│   │  Dashboard Admin (CU-14) │◄─────│                      │        │
+│   └──────────────────────────┘      │                      │        │
+│   │                                     │   Administrador      │        │
+│   │                                     │   (is_admin=true)    │        │
+│   ┌──────────────────────────┐      │                      │        │
+│   │  CRUD Productos (CU-15)  │◄─────│                      │        │
+│   └──────────────────────────┘      │                      │        │
+│                                     │                      │        │
+│   ┌──────────────────────────┐      │                      │        │
+│   │  CRUD Categorías (CU-16) │◄─────│                      │        │
+│   └──────────────────────────┘      │                      │        │
+│                                     │                      │        │
+│   ┌──────────────────────────┐      │                      │        │
+│   │  Gestionar Archivos      │◄─────│                      │        │
+│   │  Descargables (CU-17)    │      │                      │        │
+│   └──────────────────────────┘      │                      │        │
+│                                     │                      │        │
+│   ┌──────────────────────────┐      │                      │        │
+│   │  Gestionar Usuarios      │◄─────│                      │        │
+│   │        (CU-18)           │      │                      │        │
+│   └──────────────────────────┘      │                      │        │
+│                                     │                      │        │
+│   ┌──────────────────────────┐      │                      │        │
+│   │  Ver Estadísticas        │◄─────│                      │        │
+│   │        (CU-19)           │      │                      │        │
+│   └──────────────────────────┘      └──────────────────────┘        │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+
+Relaciones «include»:
+
+  CU-07 (Añadir al Carrito)  ──«include»──► CU-02 (Iniciar Sesión)
+  CU-09 (Checkout)           ──«include»──► CU-02 (Iniciar Sesión)
+  CU-09 (Checkout)           ──«include»──► CU-10 (Pago Simulado)  [si total > 0]
+  CU-10 (Pago Simulado)     ──«include»──► CU-11 (Descargar Juego)
+  CU-11 (Descargar Juego)   ──«include»──► CU-02 (Iniciar Sesión)
+  CU-14..CU-19 (Admin)      ──«include»──► CU-02 (Iniciar Sesión) + rol admin
+```
+
+> **Nota sobre la relación con Login**: Todos los casos de uso que requieren autenticación (CU-07 a CU-19) incluyen el caso de uso CU-02 (Iniciar Sesión) como precondición.
+
+---
+
+## 5. Descripción de Casos de Uso
+
+*(Se mantiene la descripción original de CU-01 a CU-19)*
+
+---
+
+## 6. Diagrama Entidad-Relación (E-R)
+
+```
+┌───────────────────────┐
+│        USERS           │
+├───────────────────────┤
+│ id (PK)               │
+│ name                  │
+│ email (UNIQUE)        │
+│ email_verified_at     │
+│ password              │
+│ is_admin              │        ┌──────────────────────┐
+│ level                 │        │     CATEGORIES        │
+│ experience            │        ├──────────────────────┤
+│ status (ENUM)         │        │ id (PK)              │
+│ suspended_until       │        │ name                 │
+│ ban_reason            │        │ slug (UNIQUE)        │
+│ avatar                │        │ description          │
+│ two_factor_secret     │        │ icon                 │
+│ two_factor_recovery   │        │ color                │
+│ remember_token        │        │ is_active            │
+│ created_at            │        │ sort_order           │
+│ updated_at            │        │ created_at           │
+└──┬────────┬───────┬───┘        │ updated_at           │
+   │        │       │            └──────────┬───────────┘
+   │        │       │                       │ 1:N
+   │        │       │                       │
+   │        │       │            ┌──────────▼───────────┐
+   │        │       │            │       PRODUCTS        │
+   │        │       │            ├──────────────────────┤
+   │  1:N   │  1:1  │M:N        │ id (PK)              │
+   │        │       │(user_     │ category_id (FK)     │
+   │        │       │ downloads)│ name                 │
+   │        │       │            │ slug (UNIQUE)        │
+   │        │       │            │ description          │
+   │        │       │            │ short_description    │
+   │        │       │            │ price                │
+   │        │       │            │ sale_price           │
+   │        │       │            │ image                │
+   │        │       │            │ gallery (JSON)       │
+   │        │       │            │ stock                │
+   │        │       │            │ is_featured          │
+   │        │       │            │ is_new_release       │
+   │        │       │            │ is_active            │
+   │        │       │            │ platform             │
+   │        │       │            │ developer            │
+   │        │       │            │ publisher            │
+   │        │       │            │ release_year         │
+   │        │       │            │ rating               │
+   │        │       │            │ downloads            │
+   │        │       │            │ created_at           │
+   │        │       │            │ updated_at           │
+   │        │       │            └──┬──────────┬────────┘
+   │        │       │               │          │ 1:N
+   │        │       │               │          │
+   │        │       │               │  ┌───────▼──────────┐
+   │        │       │               │  │  PRODUCT_FILES    │
+   │        │       │               │  ├──────────────────┤
+   │        │       │               │  │ id (PK)          │
+   │        │       │               │  │ product_id (FK)  │
+   │        │       │               │  │ filename         │
+   │        │       │               │  │ original_name    │
+   │        │       │               │  │ file_path        │
+   │        │       │               │  │ file_size        │
+   │        │       │               │  │ mime_type        │
+   │        │       │               │  │ downloads        │
+   │        │       │               │  │ description      │
+   │        │       │               │  │ version          │
+   │        │       │               │  │ is_active        │
+   │        │       │               │  │ created_at       │
+   │        │       │               │  │ updated_at       │
+   │        │       │               │  └──────────────────┘
+   │        │       │               │
+   │        │       │         N:1   │
+   ▼        ▼       │               ▼
+┌────────┐ ┌────────┴─┐      ┌──────────────────┐
+│ ORDERS │ │  CARTS    │      │  USER_DOWNLOADS   │
+├────────┤ ├──────────┤      │   (tabla pivot)   │
+│id (PK) │ │ id (PK)  │      ├──────────────────┤
+│user_id │ │ user_id  │      │ id (PK)          │
+│order_  │ │session_id│      │ user_id (FK)     │
+│ number │ │created_at│      │ product_id (FK)  │
+│ status │ │updated_at│      │ downloaded_at    │
+│subtotal│ └────┬─────┘      │ ip_address       │
+│ tax    │      │ 1:N        │ created_at       │
+│discount│      │            │ updated_at       │
+│ total  │      ▼            └──────────────────┘
+│payment │ ┌──────────┐
+│_method │ │CART_ITEMS │
+│payment │ ├──────────┤
+│_status │ │ id (PK)  │
+│billing │ │cart_id FK│
+│_address│ │product_id│
+│created │ │ quantity │
+│updated │ │ price    │
+│created_at│ │created_at│
+│updated_at│ │updated_at│
+└───┬────┘ └──────────┘
+    │ 1:N
+    ▼
+┌───────────┐
+│ORDER_ITEMS│
+├───────────┤
+│ id (PK)   │
+│order_id FK│
+│product_id │
+│prod_name  │
+│ quantity  │
+│ price     │
+│ total     │
+│created_at │
+│updated_at │
+└───────────┘
+```
+
+---
+
+## 7. Estructura de la Base de Datos
+
+*(Estructura MySQL actualizada)*
+
+---
+
+## 12. Instrucciones de Instalación
+
+### Requisitos
+
+- PHP 8.2+
+- Composer 2.x
+- Node.js 18+
+- npm 9+
+- MySQL 8.0+
+
+### Pasos
+
+1. **Clonar e instalar dependencias**
+
+```bash
+git clone <repositorio>
+cd avgames
+composer install
+```
+
+2. **Preparar Base de Datos**
+   
+   Cree una base de datos vacía llamada `avgames` en su servidor MySQL local.
+
+3. **Configurar entorno**
+
+```bash
+copy .env.example .env
+# Configure las credenciales de BD en .env:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_DATABASE=avgames
+# DB_USERNAME=root
+# DB_PASSWORD=
+php artisan key:generate
+```
+
+4. **Instalar dependencias Frontend**
+
+```bash
+npm install
+npm run build
+```
+
+5. **Crear enlace simbólico**
+
+   Necesario para visualizar las imágenes públicas de los juegos.
+
+```bash
+php artisan storage:link
+```
+
+6. **Ejecutar migraciones y seeders**
+
+   Esto creará las tablas y poblará la base de datos con ~50 juegos, categorías y usuarios de prueba.
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+7. **Iniciar servidor**
+
+```bash
+php artisan serve
+```
+
+### Credenciales de prueba
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| **Admin** | admin@avgames.com | password |
+| **Usuario** | (Autogenerado) | password |
+
+---
+
+## 13. Rúbrica de Evaluación
+
+| Criterio | Nivel | Estado |
+|---|---|---|
+| **Documentación E-R y Casos de Uso** | Completos y actualizados | ✅ |
+| **Arquitectura y Migraciones** | MySQL + Laravel Migrations + Seeders | ✅ |
+| **Operaciones CRUD** | Implementadas para Productos/Categorías/Usuarios | ✅ |
+| **Sesiones de Carrito** | Persistentes (DB) y Guest (Session) | ✅ |
+| **Gestión de Imágenes/Archivos** | Local Storage (Public + Private) | ✅ |
+| **Relaciones Eloquent** | Completas (1:1, 1:N, N:M) | ✅ |
+| **Autenticación** | Fortify (Login/Register/2FA) | ✅ |
+| **Panel de Administración** | Dashboard + CRUDs + Stats | ✅ |
+| **Sistema de Descargas** | Protegido + Contador + Niveles | ✅ |
+| **Pasarela de Pago** | Simulada + Facturas PDF (opcional) | ✅ |
+
+---
+
+## Autor
+
+Proyecto desarrollado como ejercicio de e-commerce con **Laravel 11** y **React + TypeScript** (Inertia.js).
 
 ## 2. Requisitos Funcionales
 

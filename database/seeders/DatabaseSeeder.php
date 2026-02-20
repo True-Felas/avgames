@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
         // Create admin user
         User::factory()->create([
             'name' => 'Admin',
-            'email' => 'admin@retrostore.com',
+            'email' => 'admin@avgames.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
             'is_admin' => true,
             'level' => 99,
             'experience' => 9999,

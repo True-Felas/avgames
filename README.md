@@ -1,70 +1,76 @@
-# 🎮 AVGames - Video Game Store Platform
+# AVGames - Plataforma de Tienda de Videojuegos
 
 Plataforma de tienda de videojuegos construida con Laravel, React e Inertia.
 
 ---
 
-## 🚀 Instalación Rápida (Todo Automático)
+## Instalación Rápida
 
-### Para nuevos desarrolladores:
+Para configurar el proyecto desde cero, siga estos pasos en su terminal:
 
 ```bash
 # 1. Clonar el repositorio
 git clone <tu-repositorio-url> avgames
 cd avgames
 
-# 2. Instalar dependencias (esto configura TODO automáticamente)
+# 2. Instalar dependencias de PHP
 composer install
 
-# 3. Ejecutar migraciones (solo primera vez)
-php artisan migrate
+# 3. Preparar la base de datos
+# Asegúrese de crear una base de datos vacía llamada 'avgames' en su gestor MySQL antes de continuar.
 
-# 4. ¡Listo! Iniciar el servidor
+# 4. Configurar el entorno
+copy .env.example .env
+# Configure DB_DATABASE=avgames y sus credenciales en el archivo .env
+
+# 5. Instalar dependencias de JavaScript y compilar assets
+npm install
+npm run build
+
+# 6. Crear el enlace simbólico para el almacenamiento de archivos (Necesario para imágenes públicas)
+php artisan storage:link
+
+# 7. Ejecutar migraciones y seeders
+php artisan migrate:fresh --seed
+
+# 7. Iniciar el servidor de desarrollo
 php artisan serve
 ```
 
-Accede en: **http://localhost:8000**
+Acceda en: **http://localhost:8000**
 
 ---
 
-## ✅ Lo que el `composer install` hace automáticamente:
+## Requisitos del Sistema
 
-✓ Copia `.env.example` → `.env`  
-✓ Genera `APP_KEY`  
-✓ Configura conexión a BD remota (10.8.0.1)  
-✓ Verifica que puedes alcanzar el servidor  
-
----
-
-## 📋 Requisitos
-
-- PHP 8.2+
+- PHP 8.2 o superior
 - Composer
-- Git
-- **WireGuard activo** (para acceder a la BD remota)
+- Node.js y NPM
+- MySQL o MariaDB
 
 ---
 
-## 🔧 Configuración de BD
+## Configuración de la Base de Datos
 
-La BD está **configurada automáticamente** en:
-- **Host:** 10.8.0.1 (Servidor remoto)
-- **Base de datos:** avgames
-- **Usuario:** laravel
-- **Puerto:** 3306
+El proyecto está configurado para funcionar con una base de datos local. Asegúrese de que su archivo .env contenga las credenciales correctas:
 
-**Asegúrate que WireGuard está activo:**
-```bash
-wg show
-```
+- **DB_CONNECTION:** mysql
+- **DB_HOST:** 127.0.0.1
+- **DB_PORT:** 3306
+- **DB_DATABASE:** avgames
+- **DB_USERNAME:** root
+- **DB_PASSWORD:** (vacío por defecto)
 
 ---
 
-## 🚀 Comandos Útiles
+## Comandos Útiles de Mantenimiento
 
 ```bash
 # Iniciar servidor de desarrollo
 php artisan serve
+
+# Compilar assets en tiempo real (desarrollo)
+npm run dev
 
 # Ver logs en tiempo real
 php artisan pail
@@ -72,79 +78,53 @@ php artisan pail
 # Ejecutar tests
 php artisan test
 
-# Ejecutar seeders
-php artisan db:seed
-
-# Resetear BD (cuidado!)
-php artisan migrate:fresh
+# Resetear base de datos y recargar seeders
 php artisan migrate:fresh --seed
 ```
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
-app/                 # Código de la aplicación
-├── Http/           # Controllers, Requests, Middleware
-├── Models/         # Modelos Eloquent
-└── Actions/        # Acciones reutilizables
+app/                 # Código principal de la aplicación
+├── Http/           # Controladores, Requests y Middleware
+├── Models/         # Modelos de base de datos
+└── Actions/        # Lógica de negocio específica
 
 database/           # Migraciones y seeders
-└── migrations/     # Cambios de BD versionados
+└── migrations/     # Esquema de base de datos versionado
 
-resources/          # Assets y vistas
-├── js/            # Componentes React
-└── css/           # Estilos
+resources/          # Assets y frontend
+├── js/            # Componentes React e Inertia
+└── css/           # Estilos de la aplicación
 
-routes/            # Definición de rutas
-tests/             # Tests unitarios y feature
+routes/            # Definición de rutas (web y api)
+tests/             # Pruebas automatizadas
 ```
 
 ---
 
-## 🐛 Problemas Comunes
+## Desarrollo y Colaboración
 
-### ❌ Error: "Connection timed out"
-**Solución:** Verifica WireGuard
-```bash
-wg show
-ping 10.8.0.1
-```
-
-### ❌ Error: "Access denied for user 'laravel'"
-**Solución:** El `.env` se configuró mal. Ejecuta:
-```bash
-rm .env
-composer install
-```
-
-### ❌ "php artisan" no funciona
-**Solución:** Asegúrate de hacer `composer install` primero
+- Mantener el archivo .env fuera de los commits (incluido en .gitignore).
+- Las modificaciones en el esquema de la base de datos deben realizarse mediante migraciones.
+- Para proponer cambios, cree una rama específica: git checkout -b feature/nombre-feature.
 
 ---
 
-## 👥 Desarrollo en Equipo
+## Documentación Adicional
 
-- **Nunca commitees `.env`** (está en `.gitignore`)
-- **Crea ramas para nuevas features:** `git checkout -b feature/mi-feature`
-- **Haz pull antes de pushear:** `git pull origin develop`
-- **Los cambios en BD van en migraciones**, no en SQL directo
-
----
-
-## 📚 Documentación
-
-- [Guía de Configuración Remota](docs/SETUP_REMOTE_DB.md)
-- [Guía para Compañeros](docs/GUIA_COMPAÑEROS.md)
-- [Documentación General](docs/DOCUMENTATION.md)
+- [Documentación Detallada (MD)](docs/Documentacion_Detallada.md) - Guía técnica completa.
+- [Memoria de Entrega (PDF)](docs/Documentacion_Entrega_Ecommerce2.pdf) - Documento formal de presentación.
+- [Guía de Configuración Remota](docs/SETUP_REMOTE_DB.md) - Para deploy en servidores.
 
 ---
 
-## 💬 ¿Preguntas?
+## Contacto
 
-Contacta con el administrador del proyecto.
+Para consultas técnicas, contacte con el administrador del proyecto.
 
 ---
 
-**Happy coding! 🚀**
+Este proyecto ha sido desarrollado como parte del Grado de Programación.

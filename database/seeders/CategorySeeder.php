@@ -74,9 +74,17 @@ class CategorySeeder extends Seeder
                 'name' => 'Arcade',
                 'slug' => 'arcade',
                 'description' => 'Relive the arcade experience with these coin-op classics.',
-                'icon' => 'arcade',
+                'icon' => 'joystick',
                 'color' => '#ffeb3b',
                 'sort_order' => 8,
+            ],
+            [
+                'name' => 'Visual Novel',
+                'slug' => 'visual-novel',
+                'description' => 'Immersive stories where your choices shape the narrative.',
+                'icon' => 'menu_book',
+                'color' => '#f48fb1',
+                'sort_order' => 9,
             ],
         ];
 

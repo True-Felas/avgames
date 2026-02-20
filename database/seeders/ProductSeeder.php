@@ -24,16 +24,15 @@ class ProductSeeder extends Seeder
             'https://lh3.googleusercontent.com/aida-public/AB6AXuCLaTA42TQx3xOkeemcJ4veIIy2bpeMLrtahsC2tQ454xGpKfTqEI1Ll-QJbnUerxY-JVURherRARTEuOhxQFqY7hBmL2rJPlHiHs-d4S6INjbCmfQpC7NEH6ri1IV_eR9ZUEjRXMOFzfITFJXLRRyt3ApboVhYIuxzc38rTAzgXd4JZWVnfVpVpSyhEZwGJr9JEvcZ0KWm0mYtTeQ_Nqh5lSm3JtG1Uv89x7P1a-Q7Pwnk_X6Sk4xN3FM-1lWYKyu3Ag4wvPZIaf4',
         ];
 
-        // Featured product (the hero banner)
+        // Featured product (Original)
         $adventure = Category::where('slug', 'adventure')->first();
-        Product::create([
+        $neonStreets = Product::create([
             'category_id' => $adventure->id,
             'name' => 'NEON STREETS: REDUX',
             'slug' => 'neon-streets-redux',
             'description' => 'The definitive 16-bit synthwave odyssey. Remastered for high-fidelity pixel perfection with 40+ hours of arcade action. Experience the neon-lit streets of Neo Tokyo in this groundbreaking action-adventure that defined a generation of gaming.',
             'short_description' => 'The definitive 16-bit synthwave odyssey with 40+ hours of arcade action.',
-            'price' => 0,
-            'sale_price' => null,
+            'price' => 19.99, // Added price for testing
             'image' => $sampleImages[5],
             'stock' => 999,
             'is_featured' => true,
@@ -47,14 +46,38 @@ class ProductSeeder extends Seeder
             'downloads' => 125000,
         ]);
 
-        // Manual products with specific data
+        // Link ZIP for Neon Streets (ID 1)
+        $this->createGameFile($neonStreets, 'NeonStreets_Update.zip');
+
+        // Create Shadow Blade first after featured to ensure ID 2
+        $shadowBlade = Product::create([
+            'category_id' => $adventure->id,
+            'name' => 'SHADOW BLADE: ORIGINS',
+            'slug' => 'shadow-blade-origins',
+            'description' => 'Un ninja en busca de venganza atraviesa 12 niveles de acción frenética pixel art.',
+            'short_description' => 'Un ninja en busca de venganza atraviesa 12 niveles de acción frenética pixel art.',
+            'image' => $sampleImages[2],
+            'stock' => 999,
+            'is_active' => true,
+            'platform' => 'NES',
+            'developer' => 'PIXEL NINJAS',
+            'publisher' => 'RETRO STORE PUBLISHING',
+            'release_year' => 1990,
+            'rating' => 4.8,
+            'downloads' => 98000,
+        ]);
+
+        // Link ZIP for Shadow Blade (ID 2)
+        $this->createGameFile($shadowBlade, 'ShadowBlade_FullGame.zip');
+
+        // Merged list: Remaining Manual Products
         $products = [
+            // Original manual list
             [
                 'category' => 'adventure',
                 'name' => 'PIXEL QUEST III',
                 'slug' => 'pixel-quest-iii',
                 'description' => 'Embark on an epic journey through pixelated lands. Discover treasures, battle enemies, and save the kingdom in this beloved adventure classic.',
-                'price' => 0,
                 'image' => $sampleImages[0],
                 'platform' => 'NES',
                 'developer' => 'PIXELFORGE',
@@ -67,7 +90,6 @@ class ProductSeeder extends Seeder
                 'name' => 'VOID STAR X',
                 'slug' => 'void-star-x',
                 'description' => 'The ultimate space shooter experience. Navigate through asteroid fields, battle alien armadas, and save the galaxy.',
-                'price' => 0,
                 'image' => $sampleImages[1],
                 'platform' => 'Genesis',
                 'developer' => 'CYBER DYNAMICS',
@@ -77,70 +99,131 @@ class ProductSeeder extends Seeder
             ],
             [
                 'category' => 'rpg',
-                'name' => 'CRYPT CRAWLER',
-                'slug' => 'crypt-crawler',
-                'description' => 'Descend into the depths of ancient dungeons. Level up your hero, collect legendary loot, and face the darkness within.',
-                'price' => 0,
-                'image' => $sampleImages[2],
+                'name' => 'DRAGON VALE: LEGACY',
+                'slug' => 'dragon-vale-legacy',
+                'description' => 'Un RPG épico con más de 30 horas de historia, 6 personajes jugables y combates por turnos.',
+                'image' => $sampleImages[3],
                 'platform' => 'SNES',
-                'developer' => 'RETROBIT GAMES',
-                'release_year' => 1995,
-                'rating' => 4.8,
-                'downloads' => 95000,
+                'developer' => 'MYTHFORGE STUDIOS',
+                'release_year' => 1994,
+                'rating' => 4.9,
+                'downloads' => 145000,
+            ],
+            [
+                'category' => 'platformer',
+                'name' => 'METRO RUNNER',
+                'slug' => 'metro-runner',
+                'description' => 'Salta, desliza y corre a través de la ciudad subterránea. 8 mundos y 64 niveles.',
+                'image' => $sampleImages[4],
+                'platform' => 'Genesis',
+                'developer' => 'SPEED PIXELS',
+                'release_year' => 1992,
+                'rating' => 4.7,
+                'downloads' => 112000,
             ],
             [
                 'category' => 'racing',
-                'name' => 'TURBO DRIFTER 88',
-                'slug' => 'turbo-drifter-88',
-                'description' => 'Feel the rush of high-speed racing. Master the art of drifting through neon-lit cityscapes and outrun your rivals.',
-                'price' => 0,
-                'image' => $sampleImages[3],
-                'platform' => 'Arcade',
-                'developer' => 'TURBO SOFT',
-                'release_year' => 1988,
-                'rating' => 4.3,
-                'downloads' => 68000,
+                'name' => 'NITRO CIRCUIT',
+                'slug' => 'nitro-circuit',
+                'description' => 'Compite en 16 pistas de todo el mundo con 10 vehículos desbloqueables.',
+                'image' => $sampleImages[5],
+                'platform' => 'SNES',
+                'developer' => 'TURBO BYTE',
+                'release_year' => 1995,
+                'rating' => 4.4,
+                'downloads' => 65000,
             ],
             [
-                'category' => 'rpg',
-                'name' => 'CHRONOS: DEV CUT',
-                'slug' => 'chronos-dev-cut',
-                'description' => 'Travel through time in this epic RPG. Uncover the secrets of the ancients and shape the destiny of worlds.',
-                'price' => 0,
-                'image' => $sampleImages[4],
-                'platform' => 'SNES',
-                'developer' => 'NEONTRONICS',
-                'release_year' => 1996,
+                'category' => 'arcade',
+                'name' => 'PIXEL SAGA',
+                'slug' => 'pixel-saga',
+                'description' => 'La leyenda de los 8 bits en una aventura sin igual. Explora castillos y derrota monstruos.',
+                'image' => $sampleImages[4], // Different from Shadow Blade
+                'platform' => 'NES',
+                'developer' => 'RETRO BITS',
+                'release_year' => 1988,
                 'rating' => 4.9,
-                'downloads' => 110000,
-                'is_featured' => true,
+                'price' => 9.99,
+                'downloads' => 45000,
+            ],
+            [
+                'category' => 'fighting',
+                'name' => 'MEGA FORCE',
+                'slug' => 'mega-force',
+                'description' => 'Combates de alta velocidad y fuerza bruta. El torneo definitivo ha comenzado.',
+                'image' => 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop',
+                'platform' => 'Arcade',
+                'developer' => 'POWER STUDIOS',
+                'release_year' => 1992,
+                'rating' => 4.7,
+                'price' => 14.99,
+                'downloads' => 88000,
+            ],
+            [
+                'category' => 'visual-novel',
+                'name' => 'CYBER HEART: MEMORIES',
+                'slug' => 'cyber-heart-memories',
+                'description' => 'Una historia de amor y traición en un futuro distópico. Tus decisiones lo cambian todo.',
+                'image' => 'https://images.unsplash.com/photo-1578632738980-230c333792cb?q=80&w=1974&auto=format&fit=crop',
+                'platform' => 'PC',
+                'developer' => 'NEON DREAM',
+                'release_year' => 2024,
+                'rating' => 4.9,
+                'price' => 12.99,
+                'downloads' => 15000,
             ],
         ];
 
         foreach ($products as $productData) {
             $category = Category::where('slug', $productData['category'])->first();
             unset($productData['category']);
-
+            
             Product::create(array_merge($productData, [
                 'category_id' => $category->id,
                 'short_description' => substr($productData['description'], 0, 100),
                 'stock' => 999,
                 'is_active' => true,
-                'is_new_release' => false,
-                'is_featured' => $productData['is_featured'] ?? false,
                 'publisher' => 'RETRO STORE PUBLISHING',
             ]));
         }
 
-        // Generate additional random products for each category
+        // Generate additional random products to reach the ~50 total
         $categories = Category::all();
+        $count = 0;
         foreach ($categories as $category) {
-            Product::factory()
+            $randomProducts = Product::factory()
                 ->count(5)
                 ->for($category)
                 ->create([
                     'image' => $sampleImages[array_rand($sampleImages)],
+                    'price' => fake()->randomElement([0, 0, 0, 9.99, 14.99, 29.99]), // Mix of free and paid
                 ]);
+            
+            // Link files to a few more random games (like the ones the user saw in folders 47/48)
+            foreach ($randomProducts as $rp) {
+                $count++;
+                if ($count === 35 || $count === 36) { // These will likely get IDs around 45-50
+                    $this->createGameFile($rp, 'Bonus_Content.zip');
+                }
+            }
         }
+    }
+
+    /**
+     * Helper to create a file record
+     */
+    private function createGameFile($product, $filename)
+    {
+        \App\Models\ProductFile::updateOrCreate(
+            ['product_id' => $product->id],
+            [
+                'filename' => $filename,
+                'original_name' => $filename,
+                'file_path' => 'products/' . $product->id . '/' . $filename,
+                'file_size' => 1024 * 5,
+                'mime_type' => 'application/zip',
+                'is_active' => true,
+            ]
+        );
     }
 }
